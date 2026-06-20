@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🔥 暴露クイズ！みんなで対戦</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #0f0f1a;
+  color: #fff;
+  min-height: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== LAYOUT ===== */
+.screen { display: none; min-height: 100vh; padding: 20px 16px 100px; }
+.screen.active { display: flex; flex-direction: column; }
+.center-screen { align-items: center; justify-content: center; text-align: center; }
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(220,38,38,0.12) 0%, transparent 70%);
+  transition: background 1.2s;
+}
+
+/* ===== COMMON ===== */
+.logo { font-size: 3.5rem; animation: float 2s ease-in-out infinite alternate; display: block; }
+@keyframes float { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-12px) rotate(4deg); } }
+
+.page-title {
+  font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 900; margin: 10px 0 6px;
+  background: linear-gradient(90deg, #ff6b6b, #ffd93d, #ff6b6b);
+  background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: shimmer 2.5s infinite linear;
+}
+@keyframes shimmer { from { background-position: 0% } to { background-position: 200% } }
+.page-sub { color: #888; font-size: 0.9rem; line-height: 1.7; margin-bottom: 24px; }
+
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 16px; border: none; border-radius: 14px;
+  font-size: 1.05rem; font-weight: 800; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform 0.1s, opacity 0.1s;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.btn-primary { background: linear-gradient(135deg, #ff6b6b, #ee0979); color: #fff; box-shadow: 0 4px 20px rgba(238,9,121,0.35); }
+.btn-secondary { background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2); color: #fff; }
+.btn-hint { background: rgba(250,204,21,0.12); border: 2px dashed #facc21; color: #facc21; font-size: 1rem; }
+.btn-hint:disabled { border-color: rgba(250,204,21,0.3); color: rgba(250,204,21,0.3); }
+.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 4px 20px rgba(239,68,68,0.35); }
+.btn-green  { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+
+.card {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 16px;
+}
+
+.input-field {
+  width: 100%; padding: 14px 16px; border-radius: 12px;
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15);
+  color: #fff; font-size: 1.05rem; outline: none;
+  transition: border-color 0.2s;
+}
+.input-field:focus { border-color: #ff6b6b; }
+.input-field::placeholder { color: #555; }
+
+.label { font-size: 0.78rem; color: #888; letter-spacing: 1px; margin-bottom: 6px; display: block; }
+.gap { margin-bottom: 12px; }
+.gap-lg { margin-bottom: 20px; }
+
+/* ===== SETUP NOTICE ===== */
+#setupNotice {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: #0f0f1a; padding: 24px 16px; overflow-y: auto;
+}
+.setup-box { max-width: 560px; margin: 0 auto; }
+.setup-box h2 { font-size: 1.4rem; margin-bottom: 16px; color: #ffd93d; }
+.setup-box p  { color: #aaa; font-size: 0.9rem; line-height: 1.8; margin-bottom: 12px; }
+.setup-box ol { color: #ccc; font-size: 0.88rem; line-height: 2; padding-left: 20px; margin-bottom: 16px; }
+.code-block {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.8rem;
+  color: #a5f3fc; white-space: pre-wrap; word-break: break-all; margin-bottom: 20px;
+}
+.setup-dismiss { margin-top: 8px; }
+
+/* ===== HOME ===== */
+.home-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; }
+
+/* ===== ROOM CODE ===== */
+.room-code-display {
+  font-size: clamp(3rem, 15vw, 5rem); font-weight: 900; letter-spacing: 12px;
+  color: #ffd93d; text-align: center; margin: 8px 0;
+  text-shadow: 0 0 30px rgba(255,211,61,0.5);
+}
+.room-code-hint { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 20px; }
+
+/* ===== PLAYER LIST ===== */
+.player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.player-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(255,255,255,0.05);
+  border-radius: 10px; font-size: 0.95rem;
+}
+.player-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.player-score { margin-left: auto; color: #ffd93d; font-weight: 700; font-size: 0.85rem; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-header {
+  display: flex; gap: 10px; align-items: center;
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(15,15,26,0.92); backdrop-filter: blur(8px);
+  padding: 10px 0; margin-bottom: 14px;
+}
+.progress-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #ff6b6b, #ffd93d); border-radius: 3px; transition: width 0.5s; }
+.q-label { font-size: 0.78rem; color: #888; white-space: nowrap; }
+.score-badge { font-size: 0.85rem; font-weight: 700; color: #ffd93d; white-space: nowrap; }
+
+/* ===== SHAME METER ===== */
+.shame-wrap { text-align: center; margin-bottom: 14px; }
+.shame-label { font-size: 0.68rem; color: #888; letter-spacing: 2px; margin-bottom: 6px; }
+.shame-faces { display: flex; justify-content: center; gap: 10px; margin-bottom: 8px; }
+.face { font-size: 1.5rem; opacity: 0.2; filter: grayscale(1); transition: opacity 0.4s, transform 0.4s; }
+.face.lit { opacity: 1; filter: grayscale(0); transform: scale(1.25); }
+.shame-bar-wrap { height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden; }
+.shame-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #4ade80, #facc15, #fb923c, #ef4444, #dc2626);
+  border-radius: 5px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ===== HINT CARDS ===== */
+.hints-area { margin-bottom: 14px; }
+.hint-card {
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 10px; border-left: 4px solid;
+  animation: slideIn 0.4s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateX(-14px); } to { opacity:1; } }
+.hint-card.lv1 { background: rgba(74,222,128,0.1);  border-color: #4ade80; }
+.hint-card.lv2 { background: rgba(250,204,21,0.1);  border-color: #facc21; }
+.hint-card.lv3 { background: rgba(251,146,60,0.12); border-color: #fb923c; }
+.hint-card.lv4 { background: rgba(239,68,68,0.15);  border-color: #ef4444; }
+.hint-card.lv5 { background: rgba(220,38,38,0.2);   border-color: #dc2626; }
+.hint-lv-label {
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;
+}
+.hint-card.lv1 .hint-lv-label { color: #4ade80; }
+.hint-card.lv2 .hint-lv-label { color: #facc21; }
+.hint-card.lv3 .hint-lv-label { color: #fb923c; }
+.hint-card.lv4 .hint-lv-label { color: #ef4444; }
+.hint-card.lv5 .hint-lv-label { color: #ff4040; }
+.hint-text { font-size: 0.98rem; font-weight: 600; line-height: 1.5; }
+.no-hints { text-align: center; color: #555; font-size: 0.9rem; padding: 20px 0; }
+
+/* ===== ANSWER PROGRESS (HOST) ===== */
+.answer-progress {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: rgba(255,255,255,0.05);
+  border-radius: 12px; margin-bottom: 14px; font-size: 0.9rem;
+}
+.answer-count { font-size: 1.4rem; font-weight: 900; color: #ffd93d; }
+.answer-bar-wrap { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.answer-bar { height: 100%; background: #22c55e; border-radius: 4px; transition: width 0.4s; }
+
+/* ===== CHOICES ===== */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.choice-btn {
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+  color: #fff; padding: 14px 10px; border-radius: 12px;
+  font-size: 0.92rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; min-height: 60px;
+  transition: background 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.choice-btn:active:not(:disabled) { transform: scale(0.96); }
+.choice-btn.selected { background: rgba(99,102,241,0.25); border-color: #818cf8; }
+.choice-btn.correct  { background: rgba(74,222,128,0.25); border-color: #4ade80; animation: pop 0.4s; }
+.choice-btn.wrong    { background: rgba(239,68,68,0.25);  border-color: #ef4444; animation: shake 0.4s; }
+.choice-btn:disabled { cursor: default; }
+@keyframes pop   { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.choice-key {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+}
+
+/* ===== REVIEW ===== */
+.review-answer {
+  text-align: center; padding: 20px;
+  background: rgba(255,255,255,0.04); border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1); margin-bottom: 14px;
+}
+.review-avatar { font-size: 3rem; margin-bottom: 6px; }
+.review-name { font-size: 1.8rem; font-weight: 900; }
+.review-players { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.review-player-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 10px; font-size: 0.88rem;
+  background: rgba(255,255,255,0.04);
+}
+.review-player-row.ok { border-left: 3px solid #4ade80; }
+.review-player-row.ng { border-left: 3px solid #ef4444; }
+.review-pts { margin-left: auto; font-weight: 700; color: #ffd93d; }
+
+/* ===== WAITING ===== */
+.waiting-anim {
+  width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #ff6b6b; border-radius: 50%;
+  animation: spin 1s linear infinite; margin: 20px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.answered-badge {
+  background: rgba(74,222,128,0.15); border: 2px solid #4ade80;
+  color: #4ade80; border-radius: 12px; padding: 12px 20px;
+  font-size: 1rem; font-weight: 700; text-align: center; margin-top: 10px;
+}
+
+/* ===== RESULT ===== */
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin: 20px 0 24px; }
+.podium-col { text-align: center; }
+.podium-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+.podium-score { font-size: 0.75rem; color: #ffd93d; margin-bottom: 6px; font-weight: 700; }
+.podium-block {
+  border-radius: 10px 10px 4px 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px 4px; min-width: 80px;
+}
+.podium-col:nth-child(1) .podium-block { background: linear-gradient(180deg, #fbbf24, #d97706); height: 90px; }
+.podium-col:nth-child(2) .podium-block { background: linear-gradient(180deg, #f59e0b, #b45309); height: 130px; }
+.podium-col:nth-child(3) .podium-block { background: linear-gradient(180deg, #9ca3af, #6b7280); height: 70px; }
+.podium-rank { font-size: 1.8rem; }
+.result-rest { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.result-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); font-size: 0.9rem;
+}
+.result-rank-num { font-size: 0.85rem; color: #888; width: 24px; }
+
+/* ===== FIXED BOTTOM BTN ===== */
+.fixed-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 12px 16px 20px;
+  background: linear-gradient(to top, rgba(15,15,26,1) 60%, transparent);
+  z-index: 100;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1e293b; border: 1px solid rgba(255,255,255,0.15);
+  color: #fff; padding: 10px 20px; border-radius: 30px;
+  font-size: 0.88rem; font-weight: 600; z-index: 200;
+  animation: toastIn 0.3s ease; white-space: nowrap;
+}
+@keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(-10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; top: -20px; width: 10px; height: 14px;
+  border-radius: 2px; pointer-events: none;
+  animation: fall linear forwards; z-index: 999;
+}
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div class="bg-glow" id="bgGlow"></div>
+
+<!-- Firebase設定案内 -->
+<div id="setupNotice">
+  <div class="setup-box">
+    <h2>🔧 Firebaseの設定が必要です</h2>
+    <p>みんなで一緒に遊ぶには、無料のFirebaseアカウントが必要です。以下の手順で5分で設定できます。</p>
+    <ol>
+      <li><strong>firebase.google.com</strong> にアクセスしてGoogleアカウントでログイン</li>
+      <li>「コンソールに移動」→「プロジェクトを追加」で新しいプロジェクトを作成</li>
+      <li>左メニューの「Realtime Database」→「データベースを作成」→「テストモードで開始」</li>
+      <li>画面上部の「プロジェクトの設定」（⚙️）→「マイアプリ」→ウェブアプリ（&lt;/&gt;）を追加</li>
+      <li>表示された <code>firebaseConfig</code> の値をこのファイルの下記部分に貼り付ける</li>
+    </ol>
+    <div class="code-block">// quiz.html の FIREBASE CONFIG の部分を以下に書き換え
+const FIREBASE_CONFIG = {
+  apiKey: "AIza...",          // ← ここに貼り付け
+  authDomain: "xxx.firebaseapp.com",
+  databaseURL: "https://xxx-default-rtdb.firebaseio.com",
+  projectId: "xxx",
+  storageBucket: "xxx.appspot.com",
+  messagingSenderId: "000",
+  appId: "1:000:web:xxx"
+};</div>
+    <p>※ Realtime Database のルールは「テストモード」のままで大丈夫です（飲み会当日だけ使う場合）。</p>
+    <button class="btn btn-secondary setup-dismiss" onclick="document.getElementById('setupNotice').style.display='none'">閉じる（設定済みの場合）</button>
+  </div>
+</div>
+
+<!-- ===== SCREENS ===== -->
+
+<!-- HOME -->
+<div class="screen center-screen active" id="screen-home">
+  <span class="logo">🔥</span>
+  <div class="page-title">暴露クイズ！<br>みんなで対戦</div>
+  <div class="page-sub">ヒントが増えるほど恥ずかしくなる<br>「これ誰でしょう？」クイズ</div>
+  <div class="home-btns">
+    <button class="btn btn-primary" onclick="goHost()">🎤 ホスト（司会者）になる</button>
+    <button class="btn btn-secondary" onclick="showScreen('screen-join')">📱 参加する</button>
+    <button class="btn" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#555;font-size:0.78rem;padding:10px;" onclick="document.getElementById('setupNotice').style.display='block'">Firebase設定を見る</button>
+  </div>
+</div>
+
+<!-- HOST LOBBY -->
+<div class="screen" id="screen-host-lobby">
+  <div style="text-align:center;margin-bottom:4px;">
+    <span style="font-size:0.8rem;color:#888;">ルームコードをみんなに伝えよう</span>
+  </div>
+  <div class="room-code-display" id="displayRoomCode">----</div>
+  <div class="room-code-hint">参加者はこのコードを入力して参加してください</div>
+  <div class="card gap-lg">
+    <span class="label">参加者 <span id="lobbyCount">0</span>名</span>
+    <div class="player-list" id="lobbyPlayerList"></div>
+  </div>
+  <div class="fixed-bottom">
+    <button class="btn btn-primary" id="btnStartGame" onclick="startGame()" disabled>
+      ゲーム開始！（2名以上で有効）
+    </button>
+  </div>
+</div>
+
+<!-- JOIN -->
+<div class="screen center-screen" id="screen-join">
+  <span class="logo" style="font-size:2.5rem;animation:none;">📱</span>
+  <div class="page-title" style="font-size:1.6rem;">参加する</div>
+  <div style="width:100%;max-width:380px;">
+    <div class="gap">
+      <span class="label">あなたの名前</span>
+      <input class="input-field" id="inputName" type="text" placeholder="名前を入力" maxlength="12">
+    </div>
+    <div class="gap-lg">
+      <span class="label">ルームコード（4桁）</span>
+      <input class="input-field" id="inputCode" type="number" placeholder="0000" maxlength="4"
+        inputmode="numeric" pattern="[0-9]*" style="font-size:1.5rem;letter-spacing:8px;text-align:center;">
+    </div>
+    <button class="btn btn-primary gap" onclick="joinRoom()">参加する →</button>
+    <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px;">← 戻る</button>
+  </div>
+</div>
+
+<!-- PLAYER WAIT -->
+<div class="screen center-screen" id="screen-player-wait">
+  <div class="page-title" style="font-size:1.4rem;" id="waitRoomLabel">ルーム ----</div>
+  <div class="waiting-anim"></div>
+  <div style="color:#888;font-size:0.9rem;">ホストがゲームを開始するまで待ってね</div>
+  <div class="card" style="margin-top:24px;width:100%;max-width:380px;">
+    <span class="label">参加者 <span id="waitPlayerCount">0</span>名</span>
+    <div class="player-list" id="waitPlayerList"></div>
+  </div>
+</div>
+
+<!-- HOST QUESTION -->
+<div class="screen" id="screen-host-question">
+  <div class="progress-header">
+    <span class="q-label" id="hq-qLabel">1/5</span>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="hq-progressBar" style="width:0%"></div></div>
+    <span class="q-label" style="color:#ff6b6b;">🎤ホスト</span>
+  </div>
+  <div class="shame-wrap">
+    <div class="shame-label">🌡️ 恥ずかしさメーター</div>
+    <div class="shame-faces" id="hq-shameFaces">
+      <span class="face" data-lv="1">😐</span>
+      <span class="face" data-lv="2">😅</span>
+      <span class="face" data-lv="3">😳</span>
+      <span class="face" data-lv="4">🫣</span>
+      <span class="face" data-lv="5">🔥</span>
+    </div>
+    <div class="shame-bar-wrap"><div class="shame-bar" id="hq-shameBar"></div></div>
+  </div>
+  <div class="hints-area" id="hq-hintsArea">
+    <div class="no-hints">まだヒントがありません</div>
+  </div>
+  <button class="btn btn-hint gap" id="hq-btnReveal" onclick="revealHint()">💡 ヒントを追加する</button>
+  <div class="answer-progress">
+    <div>
+      <div style="font-size:0.7rem;color:#888;margin-bottom:2px;">回答済み</div>
+      <div class="answer-count"><span id="hq-answeredCount">0</span>/<span id="hq-totalCount">0</span></div>
+    </div>
+    <div class="answer-bar-wrap"><div class="answer-bar" id="hq-answerBar" style="width:0%"></div></div>
+  </div>
+  <div class="fixed-bottom">
+    <button class="btn btn-danger" id="hq-btnLock" onclick="lockAnswers()">⏱ 回答を締め切る</button>
+  </div>
+</div>
+
+<!-- PLAYER QUESTION -->
+<div class="screen" id="screen-player-question">
+  <div class="progress-header">
+    <span class="q-label" id="pq-qLabel">1/5</span>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pq-progressBar" style="width:0%"></div></div>
+    <span class="score-badge" id="pq-score">0pt</span>
+  </div>
+  <div class="shame-wrap">
+    <div class="shame-label">🌡️ 恥ずかしさメーター</div>
+    <div class="shame-faces" id="pq-shameFaces">
+      <span class="face" data-lv="1">😐</span>
+      <span class="face" data-lv="2">😅</span>
+      <span class="face" data-lv="3">😳</span>
+      <span class="face" data-lv="4">🫣</span>
+      <span class="face" data-lv="5">🔥</span>
+    </div>
+    <div class="shame-bar-wrap"><div class="shame-bar" id="pq-shameBar"></div></div>
+  </div>
+  <div class="hints-area" id="pq-hintsArea">
+    <div class="no-hints">ホストがヒントを開くのを待ってね</div>
+  </div>
+  <div class="choices" id="pq-choices"></div>
+  <div id="pq-answeredBadge" style="display:none;" class="answered-badge">✅ 回答済み！ホストを待ってね</div>
+</div>
+
+<!-- REVIEW -->
+<div class="screen" id="screen-review">
+  <div class="progress-header">
+    <span class="q-label" id="rv-qLabel">1/5</span>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="rv-progressBar" style="width:0%"></div></div>
+    <span class="score-badge" id="rv-myScore" style="display:none;"></span>
+  </div>
+  <div class="review-answer">
+    <div class="review-avatar" id="rv-avatar"></div>
+    <div class="review-name" id="rv-name"></div>
+    <div class="review-players" id="rv-players"></div>
+  </div>
+  <div class="fixed-bottom" id="rv-nextWrap" style="display:none;">
+    <button class="btn btn-primary" onclick="nextQuestion()">次の問題へ →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen center-screen" id="screen-result">
+  <div class="page-title" style="font-size:1.5rem;">🏆 最終結果！</div>
+  <div class="podium" id="result-podium"></div>
+  <div class="result-rest" id="result-rest"></div>
+  <button class="btn btn-secondary" onclick="backToHome()" style="max-width:300px;margin-bottom:40px;">トップに戻る</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+
+// =============================================
+// FIREBASE CONFIG — ここを書き換えてください
+// =============================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDcB1zy5m1fY-U31eMuSAiVQJlqDoC9AvQ",
+  authDomain: "quiz-game-for-evh.firebaseapp.com",
+  databaseURL: "https://quiz-game-for-evh-default-rtdb.firebaseio.com",
+  projectId: "quiz-game-for-evh",
+  storageBucket: "quiz-game-for-evh.firebasestorage.app",
+  messagingSenderId: "928026357308",
+  appId: "1:928026357308:web:fa664390f5e1aa21021d39"
+};
+// =============================================
+
+// ===== MEMBERS DATA =====
+const MEMBERS_DATA = [
+  {
+    id: 1, name: "高橋　遼人", avatar: "🐟",
+    hints: ["出身地は小豆島","趣味は勉強","好きな食べ物はラーメン（特に家系）","実はピアノ経験者","口癖は「うんち」"]
+  },
+  {
+    id: 2, name: "高橋　千恵", avatar: "🎹",
+    hints: ["出身地はトゥペロ","趣味はピアノ（10年以上の経験）","銭湯で骨折した","メルカリにハマっている","老眼鏡つけている"]
+  },
+  {
+    id: 3, name: "鈴木 一郎", avatar: "⛷️",
+    hints: ["出身地は北海道","趣味はスキーとスノーボード","好きな食べ物はジンギスカン","学生時代はバスケ部のキャプテン","猫を3匹飼っている"]
+  },
+  {
+    id: 4, name: "山田 美咲", avatar: "☕",
+    hints: ["出身地は福岡県","趣味はカフェ巡りとインスタ投稿","好きな食べ物は明太子","週末は必ずハイキングに行く","英語と韓国語が話せる"]
+  },
+  {
+    id: 5, name: "伊藤 健太", avatar: "🍵",
+    hints: ["出身地は京都府","趣味は茶道と盆栽","好きな食べ物は湯豆腐","実はロック音楽が大好き","毎日10km走るランナー"]
+  }
+];
+
+const HINT_CLASSES  = ['','lv1','lv2','lv3','lv4','lv5'];
+const HINT_LABELS   = ['','😐 基本情報','😅 ちょっと個人的','😳 わりとプライベート','🫣 かなり恥ずかしい','🔥 最大暴露！！'];
+const HINT_ICONS    = ['','💡','👀','😳','🫣','🔥'];
+const REVEAL_TEXTS  = ['ヒントを追加する','もう少し暴露する…','さらに暴露！','限界突破で暴露！！','🔥 最終暴露！！！'];
+
+// ===== STATE =====
+let db = null, myUid, myName, roomCode, isHost;
+let roomRef = null;
+let localAnswers = {};
+
+// ===== FIREBASE INIT（ページ読み込み時に即実行）=====
+(function() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    console.log('Firebase接続OK');
+  } catch(e) {
+    if (e.code === 'app/duplicate-app') {
+      db = firebase.database();
+    } else {
+      console.error('Firebase初期化失敗:', e);
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;text-align:center;z-index:9999;font-size:0.85rem;">⚠️ Firebase接続エラー: ' + e.message + '</div>');
+    }
+  }
+})();
+
+function checkDb() {
+  if (!db) { alert('Firebase未接続です。インターネット接続を確認してください。'); return false; }
+  return true;
+}
+
+// ===== UID =====
+function getUid() {
+  let uid = localStorage.getItem('quiz_uid');
+  if (!uid) { uid = Math.random().toString(36).substr(2,12); localStorage.setItem('quiz_uid', uid); }
+  return uid;
+}
+
+// ===== QUESTIONS =====
+function generateQuestions() {
+  return [...MEMBERS_DATA].sort(() => Math.random()-0.5).map(member => {
+    const others = MEMBERS_DATA.filter(m => m.id !== member.id).sort(() => Math.random()-0.5).slice(0,3);
+    const choices = [member, ...others].sort(() => Math.random()-0.5)
+      .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
+    return { memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices };
+  });
+}
+
+// ===== SCREEN =====
+window.showScreen = function(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+};
+
+// ===== HOME =====
+window.goHost = async function() {
+  if (!checkDb()) return;
+  myUid = getUid();
+  isHost = true;
+  roomCode = String(Math.floor(1000 + Math.random()*9000));
+
+  const questions = generateQuestions();
+  await db.ref('rooms/' + roomCode).set({
+    hostId: myUid,
+    status: 'lobby',
+    currentQ: 0,
+    hintLevel: 0,
+    questions: questions,
+    players: { [myUid]: { name: 'ホスト(司会)', score: 0, isHost: true, joinedAt: Date.now() } },
+    createdAt: Date.now()
+  });
+
+  document.getElementById('displayRoomCode').textContent = roomCode;
+  showScreen('screen-host-lobby');
+  listenRoom();
+};
+
+// ===== JOIN =====
+window.joinRoom = async function() {
+  if (!checkDb()) return;
+  const name = document.getElementById('inputName').value.trim();
+  const code = document.getElementById('inputCode').value.trim();
+  if (!name) { toast('名前を入力してください'); return; }
+  if (code.length !== 4) { toast('4桁のコードを入力してください'); return; }
+
+  try {
+    const snap = await db.ref('rooms/' + code).once('value');
+    if (!snap.exists()) { toast('ルームが見つかりません'); return; }
+    const room = snap.val();
+    if (room.status !== 'lobby') { toast('すでにゲームが始まっています'); return; }
+
+    myUid = getUid();
+    myName = name;
+    roomCode = code;
+    isHost = false;
+
+    await db.ref('rooms/' + code + '/players/' + myUid).set({
+      name, score: 0, isHost: false, joinedAt: Date.now()
+    });
+
+    document.getElementById('waitRoomLabel').textContent = 'ルーム ' + code;
+    showScreen('screen-player-wait');
+    listenRoom();
+  } catch(e) {
+    toast('エラーが発生しました: ' + e.message);
+    console.error(e);
+  }
+};
+
+// ===== ROOM LISTENER =====
+function listenRoom() {
+  if (roomRef) roomRef.off();
+  roomRef = db.ref('rooms/' + roomCode);
+  roomRef.on('value', snap => {
+    const room = snap.val();
+    if (!room) return;
+    handleRoom(room);
+  });
+}
+
+function handleRoom(room) {
+  const status = room.status;
+  const players = room.players || {};
+  const playerList = Object.entries(players).filter(([,p]) => !p.isHost);
+  const playerCount = playerList.length;
+
+  if (status === 'lobby') {
+    if (isHost) {
+      // Update lobby
+      document.getElementById('lobbyCount').textContent = playerCount;
+      const list = document.getElementById('lobbyPlayerList');
+      list.innerHTML = playerList.map(([,p]) =>
+        `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
+      ).join('') || '<div style="color:#555;font-size:0.85rem;">まだ誰も参加していません</div>';
+      document.getElementById('btnStartGame').disabled = playerCount < 1;
+    } else {
+      // Update wait screen
+      document.getElementById('waitPlayerCount').textContent = playerCount;
+      const list = document.getElementById('waitPlayerList');
+      list.innerHTML = playerList.map(([,p]) =>
+        `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
+      ).join('');
+    }
+    return;
+  }
+
+  if (status === 'question') renderQuestion(room);
+  if (status === 'review')   renderReview(room);
+  if (status === 'finished') renderResult(room);
+}
+
+// ===== START GAME =====
+window.startGame = async function() {
+  await db.ref('rooms/' + roomCode).update({ status: 'question', currentQ: 0, hintLevel: 0 });
+};
+
+// ===== RENDER QUESTION =====
+function renderQuestion(room) {
+  const q = room.questions[room.currentQ];
+  const total = room.questions.length;
+  const qIdx = room.currentQ;
+  const hintLevel = room.hintLevel || 0;
+  const member = MEMBERS_DATA.find(m => m.id === q.memberId);
+  const players = room.players || {};
+  const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost);
+
+  if (isHost) {
+    showScreen('screen-host-question');
+    document.getElementById('hq-qLabel').textContent = `${qIdx+1}/${total}`;
+    document.getElementById('hq-progressBar').style.width = `${((qIdx)/total)*100}%`;
+    updateShame('hq', hintLevel);
+    renderHints('hq-hintsArea', member.hints, hintLevel);
+
+    // Answer progress
+    const answered = playerEntries.filter(([uid,p]) => p.answers && p.answers[qIdx] != null).length;
+    const total_players = playerEntries.length;
+    document.getElementById('hq-answeredCount').textContent = answered;
+    document.getElementById('hq-totalCount').textContent = total_players;
+    document.getElementById('hq-answerBar').style.width = total_players > 0 ? `${(answered/total_players)*100}%` : '0%';
+
+    // Reveal button
+    const revBtn = document.getElementById('hq-btnReveal');
+    if (hintLevel >= member.hints.length) {
+      revBtn.disabled = true;
+      revBtn.textContent = '✅ ヒントはすべて公開済み';
+    } else {
+      revBtn.disabled = false;
+      revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`;
+    }
+
+  } else {
+    showScreen('screen-player-question');
+    document.getElementById('pq-qLabel').textContent = `${qIdx+1}/${total}`;
+    document.getElementById('pq-progressBar').style.width = `${((qIdx)/total)*100}%`;
+    const myScore = (players[myUid]?.score) || 0;
+    document.getElementById('pq-score').textContent = myScore + 'pt';
+    updateShame('pq', hintLevel);
+    renderHints('pq-hintsArea', member.hints, hintLevel);
+
+    // Already answered?
+    const myAnswer = players[myUid]?.answers?.[qIdx];
+    const badge = document.getElementById('pq-answeredBadge');
+    if (myAnswer != null) {
+      badge.style.display = 'block';
+      renderChoicesResult('pq-choices', q.choices, q.memberId, myAnswer.choiceId);
+    } else {
+      badge.style.display = 'none';
+      renderChoices('pq-choices', q.choices, qIdx, hintLevel);
+    }
+  }
+}
+
+function renderHints(containerId, hints, hintLevel) {
+  const el = document.getElementById(containerId);
+  if (hintLevel === 0) {
+    el.innerHTML = '<div class="no-hints">' + (isHost ? 'まだヒントがありません' : 'ホストがヒントを開くのを待ってね') + '</div>';
+    return;
+  }
+  el.innerHTML = hints.slice(0, hintLevel).map((h, i) => `
+    <div class="hint-card ${HINT_CLASSES[i+1]}">
+      <div class="hint-lv-label">${HINT_LABELS[i+1]}</div>
+      <div class="hint-text">${h}</div>
+    </div>
+  `).join('');
+}
+
+function renderChoices(containerId, choices, qIdx, hintLevel) {
+  const letters = ['A','B','C','D'];
+  document.getElementById(containerId).innerHTML = choices.map((c, i) => `
+    <button class="choice-btn" onclick="submitAnswer(${c.id}, ${qIdx}, ${hintLevel})">
+      <span class="choice-key">${letters[i]}</span>${c.avatar} ${c.name}
+    </button>
+  `).join('');
+}
+
+function renderChoicesResult(containerId, choices, correctId, myChoiceId) {
+  const letters = ['A','B','C','D'];
+  document.getElementById(containerId).innerHTML = choices.map((c, i) => {
+    let cls = '';
+    if (c.id === correctId) cls = 'correct';
+    else if (c.id === myChoiceId) cls = 'wrong';
+    return `<button class="choice-btn ${cls}" disabled>
+      <span class="choice-key">${letters[i]}</span>${c.avatar} ${c.name}
+    </button>`;
+  }).join('');
+}
+
+function updateShame(prefix, lv) {
+  document.querySelectorAll(`#${prefix}-shameFaces .face`).forEach(f => {
+    f.classList.toggle('lit', parseInt(f.dataset.lv) <= lv);
+  });
+  document.getElementById(`${prefix}-shameBar`).style.width = `${(lv/5)*100}%`;
+}
+
+// ===== ACTIONS =====
+window.revealHint = async function() {
+  const snap = await db.ref('rooms/' + roomCode).once('value');
+  const room = snap.val();
+  const current = room.hintLevel || 0;
+  const q = room.questions[room.currentQ];
+  const member = MEMBERS_DATA.find(m => m.id === q.memberId);
+  if (current < member.hints.length) {
+    await db.ref('rooms/' + roomCode).update({ hintLevel: current + 1 });
+  }
+};
+
+window.submitAnswer = async function(choiceId, qIdx, hintLevel) {
+  if (localAnswers[qIdx] != null) return;
+  localAnswers[qIdx] = choiceId;
+
+  const snap = await db.ref('rooms/' + roomCode).once('value');
+  const room = snap.val();
+  const q = room.questions[qIdx];
+  const correct = choiceId === q.memberId;
+  const pts = correct ? Math.max(10, 100 - hintLevel * 15) : 0;
+  const currentScore = (room.players[myUid] && room.players[myUid].score) || 0;
+
+  const answerUpdate = {};
+  answerUpdate['score'] = currentScore + pts;
+  answerUpdate['answers/' + qIdx] = { choiceId, correct, pts };
+  await db.ref('rooms/' + roomCode + '/players/' + myUid).update(answerUpdate);
+
+  document.getElementById('pq-answeredBadge').style.display = 'block';
+  renderChoicesResult('pq-choices', q.choices, q.memberId, choiceId);
+};
+
+window.lockAnswers = async function() {
+  await db.ref('rooms/' + roomCode).update({ status: 'review' });
+};
+
+// ===== REVIEW =====
+function renderReview(room) {
+  showScreen('screen-review');
+  const q = room.questions[room.currentQ];
+  const total = room.questions.length;
+  const qIdx = room.currentQ;
+  const players = room.players || {};
+  const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost)
+    .sort((a,b) => (b[1].score||0) - (a[1].score||0));
+
+  document.getElementById('rv-qLabel').textContent = `${qIdx+1}/${total}`;
+  document.getElementById('rv-progressBar').style.width = `${((qIdx+1)/total)*100}%`;
+  document.getElementById('rv-avatar').textContent = q.memberAvatar;
+  document.getElementById('rv-name').textContent = q.memberName;
+
+  if (!isHost) {
+    const myScore = players[myUid]?.score || 0;
+    const myAns = players[myUid]?.answers?.[qIdx];
+    const el = document.getElementById('rv-myScore');
+    el.style.display = 'inline';
+    el.textContent = myScore + 'pt';
+  }
+
+  document.getElementById('rv-players').innerHTML = playerEntries.map(([uid, p]) => {
+    const ans = p.answers?.[qIdx];
+    const ok = ans?.correct;
+    return `<div class="review-player-row ${ok?'ok':'ng'}">
+      <span>${ok?'✅':'❌'}</span>
+      <span>${p.name}</span>
+      ${ans ? `<span class="review-pts">+${ans.pts}pt</span>` : ''}
+      <span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span>
+    </div>`;
+  }).join('');
+
+  const nextWrap = document.getElementById('rv-nextWrap');
+  nextWrap.style.display = isHost ? 'block' : 'none';
+}
+
+window.nextQuestion = async function() {
+  const snap = await db.ref('rooms/' + roomCode).once('value');
+  const room = snap.val();
+  const nextQ = room.currentQ + 1;
+  if (nextQ >= room.questions.length) {
+    await db.ref('rooms/' + roomCode).update({ status: 'finished' });
+  } else {
+    await db.ref('rooms/' + roomCode).update({ status: 'question', currentQ: nextQ, hintLevel: 0 });
+  }
+};
+
+// ===== RESULT =====
+function renderResult(room) {
+  showScreen('screen-result');
+  const players = room.players || {};
+  const sorted = Object.entries(players)
+    .filter(([,p]) => !p.isHost)
+    .sort((a,b) => (b[1].score||0) - (a[1].score||0));
+
+  const podiumEl = document.getElementById('result-podium');
+  const restEl = document.getElementById('result-rest');
+
+  // Top 3 podium (2nd, 1st, 3rd order visually)
+  const top3 = sorted.slice(0, 3);
+  const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean); // 2nd, 1st, 3rd
+  const ranks = [2, 1, 3];
+  const rankEmojis = ['🥇','🥈','🥉'];
+  const rankActual = [1, 2, 3];
+
+  podiumEl.innerHTML = podiumOrder.map((entry, i) => {
+    const [, p] = entry;
+    const rank = rankActual[i === 0 ? 1 : i === 1 ? 0 : 2]; // visual position to actual rank
+    const rankDisplay = [2,1,3][i];
+    return `<div class="podium-col">
+      <div class="podium-name">${p.name}</div>
+      <div class="podium-score">${p.score||0}pt</div>
+      <div class="podium-block">
+        <div class="podium-rank">${['🥈','🥇','🥉'][i]}</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${rankDisplay}位</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  restEl.innerHTML = sorted.slice(3).map(([,p], i) => `
+    <div class="result-row">
+      <span class="result-rank-num">${i+4}位</span>
+      <span>${p.name}</span>
+      <span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span>
+    </div>
+  `).join('');
+
+  if ((sorted[0]?.[1]?.score || 0) > 0) launchConfetti();
+}
+
+window.backToHome = function() {
+  if (roomRef) roomRef.off();
+  localAnswers = {};
+  showScreen('screen-home');
+};
+
+// ===== UTILS =====
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function launchConfetti() {
+  const colors = ['#ff6b6b','#ffd93d','#4ade80','#60a5fa','#f472b6','#fb923c'];
+  for (let i = 0; i < 100; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*1.5}s`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+
+</script>
+</body>
+</html>
