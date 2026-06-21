@@ -15,15 +15,21 @@ body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
+
+/* ===== LAYOUT ===== */
 .screen { display: none; min-height: 100vh; padding: 20px 16px 100px; }
 .screen.active { display: flex; flex-direction: column; }
 .center-screen { align-items: center; justify-content: center; text-align: center; }
 .bg-glow {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background: radial-gradient(ellipse at 50% 60%, rgba(220,38,38,0.12) 0%, transparent 70%);
+  transition: background 1.2s;
 }
+
+/* ===== COMMON ===== */
 .logo { font-size: 3.5rem; animation: float 2s ease-in-out infinite alternate; display: block; }
 @keyframes float { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-12px) rotate(4deg); } }
+
 .page-title {
   font-size: clamp(1.6rem, 6vw, 2.2rem); font-weight: 900; margin: 10px 0 6px;
   background: linear-gradient(90deg, #ff6b6b, #ffd93d, #ff6b6b);
@@ -32,6 +38,7 @@ body {
 }
 @keyframes shimmer { from { background-position: 0% } to { background-position: 200% } }
 .page-sub { color: #888; font-size: 0.9rem; line-height: 1.7; margin-bottom: 24px; }
+
 .btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; padding: 16px; border: none; border-radius: 14px;
@@ -45,39 +52,83 @@ body {
 .btn-hint { background: rgba(250,204,21,0.12); border: 2px dashed #facc21; color: #facc21; font-size: 1rem; }
 .btn-hint:disabled { border-color: rgba(250,204,21,0.3); color: rgba(250,204,21,0.3); }
 .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 4px 20px rgba(239,68,68,0.35); }
-.card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; }
+.btn-green  { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+
+.card {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 16px;
+}
+
 .input-field {
   width: 100%; padding: 14px 16px; border-radius: 12px;
   background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15);
-  color: #fff; font-size: 1.05rem; outline: none; transition: border-color 0.2s;
+  color: #fff; font-size: 1.05rem; outline: none;
+  transition: border-color 0.2s;
 }
 .input-field:focus { border-color: #ff6b6b; }
 .input-field::placeholder { color: #555; }
+
 .label { font-size: 0.78rem; color: #888; letter-spacing: 1px; margin-bottom: 6px; display: block; }
 .gap { margin-bottom: 12px; }
 .gap-lg { margin-bottom: 20px; }
-.rules-list { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+/* ===== RULES SCREEN ===== */
+.rules-list {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 28px;
+}
 .rule-item {
   display: flex; align-items: flex-start; gap: 14px;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px; padding: 14px 16px; text-align: left;
 }
 .rule-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+.rule-text-wrap {}
 .rule-title { font-size: 0.9rem; font-weight: 800; color: #fff; margin-bottom: 3px; }
 .rule-desc  { font-size: 0.8rem; color: #888; line-height: 1.5; }
 .rule-item.highlight { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
 .rule-item.highlight .rule-title { color: #f87171; }
+
+/* ===== SETUP NOTICE ===== */
+#setupNotice {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: #0f0f1a; padding: 24px 16px; overflow-y: auto;
+}
+.setup-box { max-width: 560px; margin: 0 auto; }
+.setup-box h2 { font-size: 1.4rem; margin-bottom: 16px; color: #ffd93d; }
+.setup-box p  { color: #aaa; font-size: 0.9rem; line-height: 1.8; margin-bottom: 12px; }
+.setup-box ol { color: #ccc; font-size: 0.88rem; line-height: 2; padding-left: 20px; margin-bottom: 16px; }
+.code-block {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.8rem;
+  color: #a5f3fc; white-space: pre-wrap; word-break: break-all; margin-bottom: 20px;
+}
+.setup-dismiss { margin-top: 8px; }
+
+/* ===== HOME ===== */
 .home-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; }
+
+/* ===== ROOM CODE ===== */
 .room-code-display {
   font-size: clamp(3rem, 15vw, 5rem); font-weight: 900; letter-spacing: 12px;
   color: #ffd93d; text-align: center; margin: 8px 0;
   text-shadow: 0 0 30px rgba(255,211,61,0.5);
 }
 .room-code-hint { font-size: 0.82rem; color: #888; text-align: center; margin-bottom: 20px; }
+
+/* ===== PLAYER LIST ===== */
 .player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-.player-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(255,255,255,0.05); border-radius: 10px; font-size: 0.95rem; }
+.player-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(255,255,255,0.05);
+  border-radius: 10px; font-size: 0.95rem;
+}
 .player-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse-dot 1.5s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.player-score { margin-left: auto; color: #ffd93d; font-weight: 700; font-size: 0.85rem; }
+
+/* ===== PROGRESS BAR ===== */
 .progress-header {
   display: flex; gap: 10px; align-items: center;
   position: sticky; top: 0; z-index: 10;
@@ -88,26 +139,46 @@ body {
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #ff6b6b, #ffd93d); border-radius: 3px; transition: width 0.5s; }
 .q-label { font-size: 0.78rem; color: #888; white-space: nowrap; }
 .score-badge { font-size: 0.85rem; font-weight: 700; color: #ffd93d; white-space: nowrap; }
-.timer-display { font-size: 1.3rem; font-weight: 900; min-width: 38px; text-align: center; color: #4ade80; transition: color 0.4s; white-space: nowrap; }
+
+/* ===== TIMER ===== */
+.timer-display {
+  font-size: 1.3rem; font-weight: 900; min-width: 38px;
+  text-align: center; color: #4ade80; transition: color 0.4s;
+  white-space: nowrap;
+}
 .timer-display.warn   { color: #facc15; }
 .timer-display.danger { color: #ef4444; animation: pulse-timer 0.5s infinite alternate; }
 @keyframes pulse-timer { from { opacity: 1; transform: scale(1); } to { opacity: 0.6; transform: scale(1.1); } }
+
+/* ===== SHAME METER ===== */
 .shame-wrap { text-align: center; margin-bottom: 14px; }
 .shame-label { font-size: 0.68rem; color: #888; letter-spacing: 2px; margin-bottom: 6px; }
 .shame-faces { display: flex; justify-content: center; gap: 10px; margin-bottom: 8px; }
 .face { font-size: 1.5rem; opacity: 0.2; filter: grayscale(1); transition: opacity 0.4s, transform 0.4s; }
 .face.lit { opacity: 1; filter: grayscale(0); transform: scale(1.25); }
 .shame-bar-wrap { height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden; }
-.shame-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #4ade80, #facc15, #fb923c, #ef4444, #dc2626); border-radius: 5px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.shame-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #4ade80, #facc15, #fb923c, #ef4444, #dc2626);
+  border-radius: 5px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ===== HINT CARDS ===== */
 .hints-area { margin-bottom: 14px; }
-.hint-card { border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; border-left: 4px solid; animation: slideIn 0.4s ease; }
+.hint-card {
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 10px; border-left: 4px solid;
+  animation: slideIn 0.4s ease;
+}
 @keyframes slideIn { from { opacity:0; transform:translateX(-14px); } to { opacity:1; } }
 .hint-card.lv1 { background: rgba(74,222,128,0.1);  border-color: #4ade80; }
 .hint-card.lv2 { background: rgba(250,204,21,0.1);  border-color: #facc21; }
 .hint-card.lv3 { background: rgba(251,146,60,0.12); border-color: #fb923c; }
 .hint-card.lv4 { background: rgba(239,68,68,0.15);  border-color: #ef4444; }
 .hint-card.lv5 { background: rgba(220,38,38,0.2);   border-color: #dc2626; }
-.hint-lv-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; }
+.hint-lv-label {
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;
+}
 .hint-card.lv1 .hint-lv-label { color: #4ade80; }
 .hint-card.lv2 .hint-lv-label { color: #facc21; }
 .hint-card.lv3 .hint-lv-label { color: #fb923c; }
@@ -115,61 +186,172 @@ body {
 .hint-card.lv5 .hint-lv-label { color: #ff4040; }
 .hint-text { font-size: 0.98rem; font-weight: 600; line-height: 1.5; }
 .no-hints { text-align: center; color: #555; font-size: 0.9rem; padding: 20px 0; }
-.answer-progress { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 14px; font-size: 0.9rem; }
+
+/* ===== ANSWER PROGRESS (HOST) ===== */
+.answer-progress {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: rgba(255,255,255,0.05);
+  border-radius: 12px; margin-bottom: 14px; font-size: 0.9rem;
+}
 .answer-count { font-size: 1.4rem; font-weight: 900; color: #ffd93d; }
 .answer-bar-wrap { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
 .answer-bar { height: 100%; background: #22c55e; border-radius: 4px; transition: width 0.4s; }
+
+/* ===== CHOICES ===== */
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .choice-btn {
   background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
   color: #fff; padding: 14px 10px; border-radius: 12px;
   font-size: 0.92rem; font-weight: 700; cursor: pointer;
   display: flex; align-items: center; gap: 8px; min-height: 60px;
-  transition: background 0.2s, border-color 0.2s; -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 .choice-btn:active:not(:disabled) { transform: scale(0.96); }
+.choice-btn.selected { background: rgba(99,102,241,0.25); border-color: #818cf8; }
 .choice-btn.correct  { background: rgba(74,222,128,0.25); border-color: #4ade80; animation: pop 0.4s; }
 .choice-btn.wrong    { background: rgba(239,68,68,0.25);  border-color: #ef4444; animation: shake 0.4s; }
 .choice-btn:disabled { cursor: default; }
 @keyframes pop   { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-.choice-key { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-.penalty-badge { background: rgba(239,68,68,0.15); border: 2px solid #ef4444; color: #f87171; border-radius: 12px; padding: 10px 16px; font-size: 0.95rem; font-weight: 700; text-align: center; margin-bottom: 10px; animation: pop 0.4s; }
-.review-answer { text-align: center; padding: 20px; background: rgba(255,255,255,0.04); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 14px; }
+.choice-key {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+}
+
+/* ===== PENALTY TOAST ===== */
+.penalty-badge {
+  background: rgba(239,68,68,0.15); border: 2px solid #ef4444;
+  color: #f87171; border-radius: 12px; padding: 10px 16px;
+  font-size: 0.95rem; font-weight: 700; text-align: center;
+  margin-bottom: 10px; animation: pop 0.4s;
+}
+
+/* ===== REVIEW ===== */
+.review-answer {
+  text-align: center; padding: 20px;
+  background: rgba(255,255,255,0.04); border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1); margin-bottom: 14px;
+}
 .review-avatar { font-size: 3rem; margin-bottom: 6px; }
 .review-name { font-size: 1.8rem; font-weight: 900; }
 .review-players { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-.review-player-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; font-size: 0.88rem; background: rgba(255,255,255,0.04); }
+.review-player-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 10px; font-size: 0.88rem;
+  background: rgba(255,255,255,0.04);
+}
 .review-player-row.ok { border-left: 3px solid #4ade80; }
 .review-player-row.ng { border-left: 3px solid #ef4444; }
 .review-player-row.no-ans { border-left: 3px solid #555; }
 .review-pts { margin-left: auto; font-weight: 700; }
 .review-pts.pos { color: #ffd93d; }
 .review-pts.neg { color: #f87171; }
-.waiting-anim { width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #ff6b6b; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+
+/* ===== WAITING ===== */
+.waiting-anim {
+  width: 60px; height: 60px; border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #ff6b6b; border-radius: 50%;
+  animation: spin 1s linear infinite; margin: 20px auto;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.answered-badge { background: rgba(74,222,128,0.15); border: 2px solid #4ade80; color: #4ade80; border-radius: 12px; padding: 12px 20px; font-size: 1rem; font-weight: 700; text-align: center; margin-top: 10px; }
+.answered-badge {
+  background: rgba(74,222,128,0.15); border: 2px solid #4ade80;
+  color: #4ade80; border-radius: 12px; padding: 12px 20px;
+  font-size: 1rem; font-weight: 700; text-align: center; margin-top: 10px;
+}
+
+/* ===== RESULT ===== */
 .podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin: 20px 0 24px; }
 .podium-col { text-align: center; }
 .podium-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
 .podium-score { font-size: 0.75rem; color: #ffd93d; margin-bottom: 6px; font-weight: 700; }
-.podium-block { border-radius: 10px 10px 4px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 4px; min-width: 80px; }
+.podium-block {
+  border-radius: 10px 10px 4px 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px 4px; min-width: 80px;
+}
 .podium-col:nth-child(1) .podium-block { background: linear-gradient(180deg, #fbbf24, #d97706); height: 90px; }
 .podium-col:nth-child(2) .podium-block { background: linear-gradient(180deg, #f59e0b, #b45309); height: 130px; }
 .podium-col:nth-child(3) .podium-block { background: linear-gradient(180deg, #9ca3af, #6b7280); height: 70px; }
 .podium-rank { font-size: 1.8rem; }
 .result-rest { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-.result-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
+.result-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); font-size: 0.9rem;
+}
 .result-rank-num { font-size: 0.85rem; color: #888; width: 24px; }
-.fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px 20px; background: linear-gradient(to top, rgba(15,15,26,1) 60%, transparent); z-index: 100; }
-.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 0.88rem; font-weight: 600; z-index: 200; animation: toastIn 0.3s ease; white-space: nowrap; }
+
+/* ===== FIXED BOTTOM BTN ===== */
+.fixed-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 12px 16px 20px;
+  background: linear-gradient(to top, rgba(15,15,26,1) 60%, transparent);
+  z-index: 100;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1e293b; border: 1px solid rgba(255,255,255,0.15);
+  color: #fff; padding: 10px 20px; border-radius: 30px;
+  font-size: 0.88rem; font-weight: 600; z-index: 200;
+  animation: toastIn 0.3s ease; white-space: nowrap;
+}
 @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(-10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
-.confetti-piece { position: fixed; top: -20px; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; animation: fall linear forwards; z-index: 999; }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; top: -20px; width: 10px; height: 14px;
+  border-radius: 2px; pointer-events: none;
+  animation: fall linear forwards; z-index: 999;
+}
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* ===== RANKING REVEAL ===== */
+@keyframes medal-drop { from { transform: translateY(-80px) scale(0.2); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes fade-rise  { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.rank-label { font-size: 0.95rem; font-weight: 800; color: #888; letter-spacing: 3px; margin-bottom: 20px; animation: fade-rise 0.4s ease both; }
+.rank-medal { font-size: 6rem; display: block; margin-bottom: 14px; animation: medal-drop 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
+.rank-name  { font-size: clamp(2rem, 9vw, 3rem); font-weight: 900; margin-bottom: 8px; animation: fade-rise 0.5s ease 0.25s both; }
+.rank-score { font-size: 1.5rem; color: #ffd93d; font-weight: 700; animation: fade-rise 0.5s ease 0.5s both; }
+.rank-intro-text { font-size: clamp(2.2rem, 9vw, 3.5rem); font-weight: 900; background: linear-gradient(90deg,#ff6b6b,#ffd93d,#ff6b6b); background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 1.5s infinite linear; margin-top: 12px; }
 </style>
 </head>
 <body>
+
 <div class="bg-glow" id="bgGlow"></div>
+
+<!-- Firebase設定案内 -->
+<div id="setupNotice">
+  <div class="setup-box">
+    <h2>🔧 Firebaseの設定が必要です</h2>
+    <p>みんなで一緒に遊ぶには、無料のFirebaseアカウントが必要です。以下の手順で5分で設定できます。</p>
+    <ol>
+      <li><strong>firebase.google.com</strong> にアクセスしてGoogleアカウントでログイン</li>
+      <li>「コンソールに移動」→「プロジェクトを追加」で新しいプロジェクトを作成</li>
+      <li>左メニューの「Realtime Database」→「データベースを作成」→「テストモードで開始」</li>
+      <li>画面上部の「プロジェクトの設定」（⚙️）→「マイアプリ」→ウェブアプリ（&lt;/&gt;）を追加</li>
+      <li>表示された <code>firebaseConfig</code> の値をこのファイルの下記部分に貼り付ける</li>
+    </ol>
+    <div class="code-block">// quiz.html の FIREBASE CONFIG の部分を以下に書き換え
+const FIREBASE_CONFIG = {
+  apiKey: "AIza...",          // ← ここに貼り付け
+  authDomain: "xxx.firebaseapp.com",
+  databaseURL: "https://xxx-default-rtdb.firebaseio.com",
+  projectId: "xxx",
+  storageBucket: "xxx.appspot.com",
+  messagingSenderId: "000",
+  appId: "1:000:web:xxx"
+};</div>
+    <p>※ Realtime Database のルールは「テストモード」のままで大丈夫です（飲み会当日だけ使う場合）。</p>
+    <button class="btn btn-secondary setup-dismiss" onclick="document.getElementById('setupNotice').style.display='none'">閉じる（設定済みの場合）</button>
+  </div>
+</div>
+
+<!-- ===== SCREENS ===== -->
 
 <!-- RULES -->
 <div class="screen center-screen active" id="screen-rules">
@@ -181,7 +363,7 @@ body {
       <div class="rule-icon">🎯</div>
       <div class="rule-text-wrap">
         <div class="rule-title">ヒントで「この人だれ？」を当てよう</div>
-        <div class="rule-desc">5秒ごとにヒントが自動公開。4択の中から正解を選んでね。</div>
+        <div class="rule-desc">ホストがヒントを1枚ずつ公開。4択の中から正解を選んでね。</div>
       </div>
     </div>
     <div class="rule-item">
@@ -232,7 +414,9 @@ body {
 
 <!-- HOST LOBBY -->
 <div class="screen" id="screen-host-lobby">
-  <div style="text-align:center;margin-bottom:4px;"><span style="font-size:0.8rem;color:#888;">ルームコードをみんなに伝えよう</span></div>
+  <div style="text-align:center;margin-bottom:4px;">
+    <span style="font-size:0.8rem;color:#888;">ルームコードをみんなに伝えよう</span>
+  </div>
   <div class="room-code-display" id="displayRoomCode">----</div>
   <div class="room-code-hint">参加者はこのコードを入力して参加してください</div>
   <div class="card gap-lg">
@@ -240,7 +424,9 @@ body {
     <div class="player-list" id="lobbyPlayerList"></div>
   </div>
   <div class="fixed-bottom">
-    <button class="btn btn-primary" id="btnStartGame" onclick="startGame()" disabled>ゲーム開始！（2名以上で有効）</button>
+    <button class="btn btn-primary" id="btnStartGame" onclick="startGame()" disabled>
+      ゲーム開始！（2名以上で有効）
+    </button>
   </div>
 </div>
 
@@ -255,7 +441,8 @@ body {
     </div>
     <div class="gap-lg">
       <span class="label">ルームコード（4桁）</span>
-      <input class="input-field" id="inputCode" type="number" placeholder="0000" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="font-size:1.5rem;letter-spacing:8px;text-align:center;">
+      <input class="input-field" id="inputCode" type="number" placeholder="0000" maxlength="4"
+        inputmode="numeric" pattern="[0-9]*" style="font-size:1.5rem;letter-spacing:8px;text-align:center;">
     </div>
     <button class="btn btn-primary gap" onclick="joinRoom()">参加する →</button>
     <button class="btn btn-secondary" onclick="showScreen('screen-home')" style="margin-top:8px;">← 戻る</button>
@@ -276,20 +463,25 @@ body {
 <!-- HOST QUESTION -->
 <div class="screen" id="screen-host-question">
   <div class="progress-header">
-    <span class="q-label" id="hq-qLabel">1/12</span>
+    <span class="q-label" id="hq-qLabel">1/5</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="hq-progressBar" style="width:0%"></div></div>
-    <span class="timer-display" id="hq-timer">30</span>
+    <span class="timer-display" id="hq-timer">60</span>
     <span class="q-label" style="color:#ff6b6b;">🎤ホスト</span>
   </div>
   <div class="shame-wrap">
     <div class="shame-label">🌡️ 恥ずかしさメーター</div>
     <div class="shame-faces" id="hq-shameFaces">
-      <span class="face" data-lv="1">😐</span><span class="face" data-lv="2">😅</span>
-      <span class="face" data-lv="3">😳</span><span class="face" data-lv="4">🫣</span><span class="face" data-lv="5">🔥</span>
+      <span class="face" data-lv="1">😐</span>
+      <span class="face" data-lv="2">😅</span>
+      <span class="face" data-lv="3">😳</span>
+      <span class="face" data-lv="4">🫣</span>
+      <span class="face" data-lv="5">🔥</span>
     </div>
     <div class="shame-bar-wrap"><div class="shame-bar" id="hq-shameBar"></div></div>
   </div>
-  <div class="hints-area" id="hq-hintsArea"><div class="no-hints">まだヒントがありません</div></div>
+  <div class="hints-area" id="hq-hintsArea">
+    <div class="no-hints">まだヒントがありません</div>
+  </div>
   <button class="btn btn-hint gap" id="hq-btnReveal" onclick="revealHint()">⏩ ヒントを今すぐ出す（自動公開中）</button>
   <div class="answer-progress">
     <div>
@@ -299,27 +491,32 @@ body {
     <div class="answer-bar-wrap"><div class="answer-bar" id="hq-answerBar" style="width:0%"></div></div>
   </div>
   <div class="fixed-bottom">
-    <button class="btn btn-danger" onclick="lockAnswers()">⏱ 回答を締め切る</button>
+    <button class="btn btn-danger" id="hq-btnLock" onclick="lockAnswers()">⏱ 回答を締め切る</button>
   </div>
 </div>
 
 <!-- PLAYER QUESTION -->
 <div class="screen" id="screen-player-question">
   <div class="progress-header">
-    <span class="q-label" id="pq-qLabel">1/12</span>
+    <span class="q-label" id="pq-qLabel">1/5</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pq-progressBar" style="width:0%"></div></div>
-    <span class="timer-display" id="pq-timer">30</span>
+    <span class="timer-display" id="pq-timer">60</span>
     <span class="score-badge" id="pq-score">0pt</span>
   </div>
   <div class="shame-wrap">
     <div class="shame-label">🌡️ 恥ずかしさメーター</div>
     <div class="shame-faces" id="pq-shameFaces">
-      <span class="face" data-lv="1">😐</span><span class="face" data-lv="2">😅</span>
-      <span class="face" data-lv="3">😳</span><span class="face" data-lv="4">🫣</span><span class="face" data-lv="5">🔥</span>
+      <span class="face" data-lv="1">😐</span>
+      <span class="face" data-lv="2">😅</span>
+      <span class="face" data-lv="3">😳</span>
+      <span class="face" data-lv="4">🫣</span>
+      <span class="face" data-lv="5">🔥</span>
     </div>
     <div class="shame-bar-wrap"><div class="shame-bar" id="pq-shameBar"></div></div>
   </div>
-  <div class="hints-area" id="pq-hintsArea"><div class="no-hints">ホストがヒントを開くのを待ってね</div></div>
+  <div class="hints-area" id="pq-hintsArea">
+    <div class="no-hints">ホストがヒントを開くのを待ってね</div>
+  </div>
   <div id="pq-penaltyBadge" style="display:none;" class="penalty-badge">❌ 不正解！ −30pt のペナルティ</div>
   <div class="choices" id="pq-choices"></div>
   <div id="pq-answeredBadge" style="display:none;" class="answered-badge">✅ 回答済み！ホストを待ってね</div>
@@ -328,7 +525,7 @@ body {
 <!-- REVIEW -->
 <div class="screen" id="screen-review">
   <div class="progress-header">
-    <span class="q-label" id="rv-qLabel">1/12</span>
+    <span class="q-label" id="rv-qLabel">1/5</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="rv-progressBar" style="width:0%"></div></div>
     <span class="score-badge" id="rv-myScore" style="display:none;"></span>
   </div>
@@ -342,6 +539,14 @@ body {
   </div>
 </div>
 
+<!-- RANKING REVEAL -->
+<div class="screen center-screen" id="screen-ranking">
+  <div id="rank-label" class="rank-label"></div>
+  <div id="rank-medal" class="rank-medal"></div>
+  <div id="rank-name"  class="rank-name"></div>
+  <div id="rank-score" class="rank-score"></div>
+</div>
+
 <!-- RESULT -->
 <div class="screen center-screen" id="screen-result">
   <div class="page-title" style="font-size:1.5rem;">🏆 最終結果！</div>
@@ -353,6 +558,7 @@ body {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
+
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDcB1zy5m1fY-U31eMuSAiVQJlqDoC9AvQ",
   authDomain: "quiz-game-for-evh.firebaseapp.com",
@@ -447,21 +653,28 @@ const REVEAL_TEXTS  = ['ヒントを追加する','もう少し暴露する…',
 let db = null, myUid, myName, roomCode, isHost;
 let roomRef = null;
 let localAnswers = {};
-let timerInterval = null;
+let timerInterval  = null;
 let currentQStartedAt = 0;
+let revealStarted = false;
 
 (function() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
+    console.log('Firebase接続OK');
   } catch(e) {
-    if (e.code === 'app/duplicate-app') { db = firebase.database(); }
-    else { document.body.insertAdjacentHTML('afterbegin', '<div style="position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;text-align:center;z-index:9999;font-size:0.85rem;">⚠️ Firebase接続エラー: ' + e.message + '</div>'); }
+    if (e.code === 'app/duplicate-app') {
+      db = firebase.database();
+    } else {
+      console.error('Firebase初期化失敗:', e);
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;text-align:center;z-index:9999;font-size:0.85rem;">⚠️ Firebase接続エラー: ' + e.message + '</div>');
+    }
   }
 })();
 
 function checkDb() {
-  if (!db) { alert('Firebase未接続です。'); return false; }
+  if (!db) { alert('Firebase未接続です。インターネット接続を確認してください。'); return false; }
   return true;
 }
 
@@ -476,7 +689,8 @@ function generateQuestions() {
   MEMBERS_DATA.forEach(member => {
     [0, 5].forEach(hintOffset => {
       const others = MEMBERS_DATA.filter(m => m.id !== member.id).sort(() => Math.random()-0.5).slice(0,3);
-      const choices = [member, ...others].sort(() => Math.random()-0.5).map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
+      const choices = [member, ...others].sort(() => Math.random()-0.5)
+        .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
       questions.push({ memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices, hintOffset });
     });
   });
@@ -491,7 +705,8 @@ window.showScreen = function(id) {
 
 window.goHost = async function() {
   if (!checkDb()) return;
-  myUid = getUid(); isHost = true;
+  myUid = getUid();
+  isHost = true;
   roomCode = String(Math.floor(1000 + Math.random()*9000));
   const questions = generateQuestions();
   await db.ref('rooms/' + roomCode).set({
@@ -519,7 +734,7 @@ window.joinRoom = async function() {
     document.getElementById('waitRoomLabel').textContent = 'ルーム ' + code;
     showScreen('screen-player-wait');
     listenRoom();
-  } catch(e) { toast('エラーが発生しました: ' + e.message); }
+  } catch(e) { toast('エラーが発生しました: ' + e.message); console.error(e); }
 };
 
 function listenRoom() {
@@ -562,7 +777,6 @@ window.startGame = async function() {
 function startTimer(startedAt) {
   clearTimerInterval();
   currentQStartedAt = startedAt;
-
   timerInterval = setInterval(() => {
     const elapsed   = Math.floor((Date.now() - startedAt) / 1000);
     const remaining = Math.max(0, TIMER_DURATION - elapsed);
@@ -576,7 +790,6 @@ function startTimer(startedAt) {
     });
     if (remaining <= 0) { clearTimerInterval(); if (isHost) lockAnswers(); }
   }, 200);
-
   if (isHost) {
     const HINT_INTERVAL = 5;
     for (let i = 1; i <= 5; i++) {
@@ -602,9 +815,7 @@ function renderQuestion(room) {
   const member = MEMBERS_DATA.find(m => m.id === q.memberId);
   const players = room.players || {};
   const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost);
-
   if (room.questionStartedAt && room.questionStartedAt !== currentQStartedAt) startTimer(room.questionStartedAt);
-
   if (isHost) {
     showScreen('screen-host-question');
     document.getElementById('hq-qLabel').textContent = `${qIdx+1}/${total}`;
@@ -612,14 +823,14 @@ function renderQuestion(room) {
     const hintOffset = q.hintOffset || 0;
     updateShame('hq', hintLevel);
     renderHints('hq-hintsArea', member.hints, hintLevel, hintOffset);
-    const answered = playerEntries.filter(([,p]) => p.answers && p.answers[qIdx] != null).length;
+    const answered = playerEntries.filter(([uid,p]) => p.answers && p.answers[qIdx] != null).length;
     const total_players = playerEntries.length;
     document.getElementById('hq-answeredCount').textContent = answered;
     document.getElementById('hq-totalCount').textContent = total_players;
     document.getElementById('hq-answerBar').style.width = total_players > 0 ? `${(answered/total_players)*100}%` : '0%';
     const revBtn = document.getElementById('hq-btnReveal');
     if (hintLevel >= 5) { revBtn.disabled = true; revBtn.textContent = '✅ ヒントはすべて公開済み'; }
-    else { revBtn.disabled = false; revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ヒントを今すぐ出す（自動公開中）`; }
+    else { revBtn.disabled = false; revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`; }
   } else {
     showScreen('screen-player-question');
     document.getElementById('pq-qLabel').textContent = `${qIdx+1}/${total}`;
@@ -645,7 +856,7 @@ function renderQuestion(room) {
 function renderHints(containerId, hints, hintLevel, hintOffset) {
   const el = document.getElementById(containerId);
   if (hintLevel === 0) {
-    el.innerHTML = '<div class="no-hints">' + (isHost ? 'まだヒントがありません（5秒後に自動公開）' : 'もうすぐヒントが出るよ！') + '</div>';
+    el.innerHTML = '<div class="no-hints">' + (isHost ? 'まだヒントがありません' : 'ホストがヒントを開くのを待ってね') + '</div>';
     return;
   }
   const offset = hintOffset || 0;
@@ -720,7 +931,8 @@ function renderReview(room) {
   const total = room.questions.length;
   const qIdx = room.currentQ;
   const players = room.players || {};
-  const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost).sort((a,b) => (b[1].score||0) - (a[1].score||0));
+  const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost)
+    .sort((a,b) => (b[1].score||0) - (a[1].score||0));
   document.getElementById('rv-qLabel').textContent = `${qIdx+1}/${total}`;
   document.getElementById('rv-progressBar').style.width = `${((qIdx+1)/total)*100}%`;
   document.getElementById('rv-avatar').textContent = q.memberAvatar;
@@ -756,19 +968,79 @@ window.nextQuestion = async function() {
 
 function renderResult(room) {
   clearTimerInterval();
-  showScreen('screen-result');
+  if (revealStarted) return;
+  revealStarted = true;
   const players = room.players || {};
-  const sorted = Object.entries(players).filter(([,p]) => !p.isHost).sort((a,b) => (b[1].score||0) - (a[1].score||0));
+  const sorted = Object.entries(players)
+    .filter(([,p]) => !p.isHost)
+    .sort((a,b) => (b[1].score||0) - (a[1].score||0));
+  runRankingReveal(sorted);
+}
+
+function runRankingReveal(sorted) {
+  showScreen('screen-ranking');
+  const labelEl = document.getElementById('rank-label');
+  const medalEl = document.getElementById('rank-medal');
+  const nameEl  = document.getElementById('rank-name');
+  const scoreEl = document.getElementById('rank-score');
+
+  function setCard(label, medal, name, score, medalCls, nameCls) {
+    labelEl.textContent = label;
+    medalEl.className = ''; nameEl.className = ''; scoreEl.className = '';
+    void medalEl.offsetWidth;
+    medalEl.textContent = medal;
+    nameEl.textContent  = name;
+    scoreEl.textContent = score;
+    medalEl.className = medalCls;
+    nameEl.className  = nameCls;
+    scoreEl.className = 'rank-score';
+  }
+
+  setCard('', '🏆', '結果発表！', '', 'rank-medal', 'rank-intro-text');
+
+  const MEDALS = ['🏆', '🥈', '🥉'];
+  const steps = [
+    { delay: 1200, rank: 3, label: '🥉  第3位' },
+    { delay: 3700, rank: 2, label: '🥈  第2位' },
+    { delay: 6200, rank: 1, label: '🏆  第1位！！' },
+    { delay: 9200, rank: 0 },
+  ];
+
+  steps.forEach(({ delay, rank, label }) => {
+    setTimeout(() => {
+      if (rank === 0) { showFullResult(sorted); return; }
+      const entry = sorted[rank - 1];
+      if (!entry) return;
+      const [, p] = entry;
+      setCard(label, MEDALS[rank - 1], p.name, (p.score || 0) + 'pt', 'rank-medal', 'rank-name');
+      if (rank === 1) launchConfetti();
+    }, delay);
+  });
+}
+
+function showFullResult(sorted) {
+  showScreen('screen-result');
   const top3 = sorted.slice(0, 3);
   const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
   document.getElementById('result-podium').innerHTML = podiumOrder.map((entry, i) => {
     const [, p] = entry;
-    return `<div class="podium-col"><div class="podium-name">${p.name}</div><div class="podium-score">${p.score||0}pt</div><div class="podium-block"><div class="podium-rank">${['🥈','🥇','🥉'][i]}</div><div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${[2,1,3][i]}位</div></div></div>`;
+    return `<div class="podium-col">
+      <div class="podium-name">${p.name}</div>
+      <div class="podium-score">${p.score||0}pt</div>
+      <div class="podium-block">
+        <div class="podium-rank">${['🥈','🥇','🥉'][i]}</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${[2,1,3][i]}位</div>
+      </div>
+    </div>`;
   }).join('');
   document.getElementById('result-rest').innerHTML = sorted.slice(3).map(([,p], i) => `
-    <div class="result-row"><span class="result-rank-num">${i+4}位</span><span>${p.name}</span><span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span></div>
+    <div class="result-row">
+      <span class="result-rank-num">${i+4}位</span>
+      <span>${p.name}</span>
+      <span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span>
+    </div>
   `).join('');
-  if ((sorted[0]?.[1]?.score || 0) > 0) launchConfetti();
+  launchConfetti();
 }
 
 window.backToHome = function() {
@@ -776,6 +1048,7 @@ window.backToHome = function() {
   clearTimerInterval();
   localAnswers = {};
   currentQStartedAt = 0;
+  revealStarted = false;
   showScreen('screen-home');
 };
 
@@ -796,6 +1069,7 @@ function launchConfetti() {
     setTimeout(() => el.remove(), 4000);
   }
 }
+
 </script>
 </body>
 </html>
