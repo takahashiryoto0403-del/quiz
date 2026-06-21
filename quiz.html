@@ -72,6 +72,24 @@ body {
 .gap { margin-bottom: 12px; }
 .gap-lg { margin-bottom: 20px; }
 
+/* ===== RULES SCREEN ===== */
+.rules-list {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 28px;
+}
+.rule-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 14px 16px; text-align: left;
+}
+.rule-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+.rule-text-wrap {}
+.rule-title { font-size: 0.9rem; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.rule-desc  { font-size: 0.8rem; color: #888; line-height: 1.5; }
+.rule-item.highlight { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+.rule-item.highlight .rule-title { color: #f87171; }
+
 /* ===== SETUP NOTICE ===== */
 #setupNotice {
   display: none; position: fixed; inset: 0; z-index: 999;
@@ -121,6 +139,16 @@ body {
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #ff6b6b, #ffd93d); border-radius: 3px; transition: width 0.5s; }
 .q-label { font-size: 0.78rem; color: #888; white-space: nowrap; }
 .score-badge { font-size: 0.85rem; font-weight: 700; color: #ffd93d; white-space: nowrap; }
+
+/* ===== TIMER ===== */
+.timer-display {
+  font-size: 1.3rem; font-weight: 900; min-width: 38px;
+  text-align: center; color: #4ade80; transition: color 0.4s;
+  white-space: nowrap;
+}
+.timer-display.warn   { color: #facc15; }
+.timer-display.danger { color: #ef4444; animation: pulse-timer 0.5s infinite alternate; }
+@keyframes pulse-timer { from { opacity: 1; transform: scale(1); } to { opacity: 0.6; transform: scale(1.1); } }
 
 /* ===== SHAME METER ===== */
 .shame-wrap { text-align: center; margin-bottom: 14px; }
@@ -192,6 +220,14 @@ body {
   display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
 }
 
+/* ===== PENALTY TOAST ===== */
+.penalty-badge {
+  background: rgba(239,68,68,0.15); border: 2px solid #ef4444;
+  color: #f87171; border-radius: 12px; padding: 10px 16px;
+  font-size: 0.95rem; font-weight: 700; text-align: center;
+  margin-bottom: 10px; animation: pop 0.4s;
+}
+
 /* ===== REVIEW ===== */
 .review-answer {
   text-align: center; padding: 20px;
@@ -208,7 +244,10 @@ body {
 }
 .review-player-row.ok { border-left: 3px solid #4ade80; }
 .review-player-row.ng { border-left: 3px solid #ef4444; }
-.review-pts { margin-left: auto; font-weight: 700; color: #ffd93d; }
+.review-player-row.no-ans { border-left: 3px solid #555; }
+.review-pts { margin-left: auto; font-weight: 700; }
+.review-pts.pos { color: #ffd93d; }
+.review-pts.neg { color: #f87171; }
 
 /* ===== WAITING ===== */
 .waiting-anim {
@@ -276,7 +315,6 @@ body {
 
 <div class="bg-glow" id="bgGlow"></div>
 
-<!-- Firebase設定案内 -->
 <div id="setupNotice">
   <div class="setup-box">
     <h2>🔧 Firebaseの設定が必要です</h2>
@@ -288,9 +326,8 @@ body {
       <li>画面上部の「プロジェクトの設定」（⚙️）→「マイアプリ」→ウェブアプリ（&lt;/&gt;）を追加</li>
       <li>表示された <code>firebaseConfig</code> の値をこのファイルの下記部分に貼り付ける</li>
     </ol>
-    <div class="code-block">// quiz.html の FIREBASE CONFIG の部分を以下に書き換え
-const FIREBASE_CONFIG = {
-  apiKey: "AIza...",          // ← ここに貼り付け
+    <div class="code-block">const FIREBASE_CONFIG = {
+  apiKey: "AIza...",
   authDomain: "xxx.firebaseapp.com",
   databaseURL: "https://xxx-default-rtdb.firebaseio.com",
   projectId: "xxx",
@@ -298,22 +335,67 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "000",
   appId: "1:000:web:xxx"
 };</div>
-    <p>※ Realtime Database のルールは「テストモード」のままで大丈夫です（飲み会当日だけ使う場合）。</p>
+    <p>※ Realtime Database のルールは「テストモード」のままで大丈夫です。</p>
     <button class="btn btn-secondary setup-dismiss" onclick="document.getElementById('setupNotice').style.display='none'">閉じる（設定済みの場合）</button>
   </div>
 </div>
 
-<!-- ===== SCREENS ===== -->
+<!-- RULES -->
+<div class="screen center-screen active" id="screen-rules">
+  <span class="logo">📋</span>
+  <div class="page-title">ゲームのルール</div>
+  <div class="page-sub">始める前にチェック！</div>
+  <div class="rules-list">
+    <div class="rule-item">
+      <div class="rule-icon">🎯</div>
+      <div class="rule-text-wrap">
+        <div class="rule-title">ヒントで「この人だれ？」を当てよう</div>
+        <div class="rule-desc">ホストがヒントを1枚ずつ公開。4択の中から正解を選んでね。</div>
+      </div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">💡</div>
+      <div class="rule-text-wrap">
+        <div class="rule-title">早く答えるほど高得点</div>
+        <div class="rule-desc">ヒント0枚で正解 → 100pt<br>ヒントが増えるごとに獲得ポイントが減っていく。</div>
+      </div>
+    </div>
+    <div class="rule-item highlight">
+      <div class="rule-icon">❌</div>
+      <div class="rule-text-wrap">
+        <div class="rule-title">間違えると −30pt のペナルティ</div>
+        <div class="rule-desc">無闇に答えると損！ヒントをよく見て慎重に。回答は1問につき1回のみ。</div>
+      </div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">⏱</div>
+      <div class="rule-text-wrap">
+        <div class="rule-title">制限時間は30秒</div>
+        <div class="rule-desc">時間切れになると自動で回答締め切り。時間内に答えてね！</div>
+      </div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-icon">🏆</div>
+      <div class="rule-text-wrap">
+        <div class="rule-title">全問終了後に順位発表</div>
+        <div class="rule-desc">合計ポイントが一番多い人が優勝！マイナスもあるよ。</div>
+      </div>
+    </div>
+  </div>
+  <div style="width:100%;max-width:400px;">
+    <button class="btn btn-primary" onclick="showScreen('screen-home')">わかった！ゲームへ →</button>
+  </div>
+</div>
 
 <!-- HOME -->
-<div class="screen center-screen active" id="screen-home">
+<div class="screen center-screen" id="screen-home">
   <span class="logo">🔥</span>
   <div class="page-title">暴露クイズ！<br>みんなで対戦</div>
   <div class="page-sub">ヒントが増えるほど恥ずかしくなる<br>「これ誰でしょう？」クイズ</div>
   <div class="home-btns">
     <button class="btn btn-primary" onclick="goHost()">🎤 ホスト（司会者）になる</button>
     <button class="btn btn-secondary" onclick="showScreen('screen-join')">📱 参加する</button>
-    <button class="btn" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#555;font-size:0.78rem;padding:10px;" onclick="document.getElementById('setupNotice').style.display='block'">Firebase設定を見る</button>
+    <button class="btn" style="background:none;border:1px solid rgba(255,255,255,0.1);color:#555;font-size:0.78rem;padding:10px;" onclick="showScreen('screen-rules')">📋 ルールを確認する</button>
   </div>
 </div>
 
@@ -368,8 +450,9 @@ const FIREBASE_CONFIG = {
 <!-- HOST QUESTION -->
 <div class="screen" id="screen-host-question">
   <div class="progress-header">
-    <span class="q-label" id="hq-qLabel">1/5</span>
+    <span class="q-label" id="hq-qLabel">1/12</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="hq-progressBar" style="width:0%"></div></div>
+    <span class="timer-display" id="hq-timer">30</span>
     <span class="q-label" style="color:#ff6b6b;">🎤ホスト</span>
   </div>
   <div class="shame-wrap">
@@ -402,8 +485,9 @@ const FIREBASE_CONFIG = {
 <!-- PLAYER QUESTION -->
 <div class="screen" id="screen-player-question">
   <div class="progress-header">
-    <span class="q-label" id="pq-qLabel">1/5</span>
+    <span class="q-label" id="pq-qLabel">1/12</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pq-progressBar" style="width:0%"></div></div>
+    <span class="timer-display" id="pq-timer">30</span>
     <span class="score-badge" id="pq-score">0pt</span>
   </div>
   <div class="shame-wrap">
@@ -420,6 +504,7 @@ const FIREBASE_CONFIG = {
   <div class="hints-area" id="pq-hintsArea">
     <div class="no-hints">ホストがヒントを開くのを待ってね</div>
   </div>
+  <div id="pq-penaltyBadge" style="display:none;" class="penalty-badge">❌ 不正解！ −30pt のペナルティ</div>
   <div class="choices" id="pq-choices"></div>
   <div id="pq-answeredBadge" style="display:none;" class="answered-badge">✅ 回答済み！ホストを待ってね</div>
 </div>
@@ -427,7 +512,7 @@ const FIREBASE_CONFIG = {
 <!-- REVIEW -->
 <div class="screen" id="screen-review">
   <div class="progress-header">
-    <span class="q-label" id="rv-qLabel">1/5</span>
+    <span class="q-label" id="rv-qLabel">1/12</span>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="rv-progressBar" style="width:0%"></div></div>
     <span class="score-badge" id="rv-myScore" style="display:none;"></span>
   </div>
@@ -453,9 +538,6 @@ const FIREBASE_CONFIG = {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 
-// =============================================
-// FIREBASE CONFIG — ここを書き換えてください
-// =============================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDcB1zy5m1fY-U31eMuSAiVQJlqDoC9AvQ",
   authDomain: "quiz-game-for-evh.firebaseapp.com",
@@ -465,29 +547,80 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "928026357308",
   appId: "1:928026357308:web:fa664390f5e1aa21021d39"
 };
-// =============================================
 
-// ===== MEMBERS DATA =====
+const TIMER_DURATION = 30;
+const WRONG_PTS      = -30;
+
 const MEMBERS_DATA = [
   {
-    id: 1, name: "高橋　遼人", avatar: "🐟",
-    hints: ["出身地は小豆島","趣味は勉強","好きな食べ物はラーメン（特に家系）","実はピアノ経験者","口癖は「うんち」"]
+    id: 1, name: "伊澤GM", avatar: "😎",
+    hints: [
+      "剣道の経験がある",
+      "DIYが好きで、最近花を育てている",
+      "ビールの美味しさがいまだにわからない",
+      "ぶん殴るゲームが大好き",
+      "大学時代、髪でやんちゃしていた",
+      "真面目に見られることが多い",
+      "公園に行きすぎる",
+      "小学生の頃はニコニコしていた",
+      "カルビはもう食べられない",
+      "アニメが大好き"
+    ]
   },
   {
-    id: 2, name: "高橋　千恵", avatar: "🎹",
-    hints: ["出身地はトゥペロ","趣味はピアノ（10年以上の経験）","銭湯で骨折した","メルカリにハマっている","老眼鏡つけている"]
+    id: 2, name: "船橋GM", avatar: "🚢",
+    hints: [
+      "運動部出身",
+      "目立つのが大好き",
+      "わがままと言われることが多い",
+      "発表中に伊澤さんと喧嘩していたことがある",
+      "今もジャイアン気質？？",
+      "ヒント6","ヒント7","ヒント8","ヒント9","ヒント10"
+    ]
   },
   {
-    id: 3, name: "鈴木 一郎", avatar: "⛷️",
-    hints: ["出身地は北海道","趣味はスキーとスノーボード","好きな食べ物はジンギスカン","学生時代はバスケ部のキャプテン","猫を3匹飼っている"]
+    id: 3, name: "成瀬GM", avatar: "🎯",
+    hints: [
+      "ラーメンが大好き",
+      "ポイ活をしている",
+      "スマホをめちゃくちゃ変える",
+      "むっつりしていると言われる",
+      "パワポのP2の説明を飛ばしていたことがある",
+      "ヒント6","ヒント7","ヒント8","ヒント9","ヒント10"
+    ]
   },
   {
-    id: 4, name: "山田 美咲", avatar: "☕",
-    hints: ["出身地は福岡県","趣味はカフェ巡りとインスタ投稿","好きな食べ物は明太子","週末は必ずハイキングに行く","英語と韓国語が話せる"]
+    id: 4, name: "村上GM", avatar: "🦁",
+    hints: [
+      "数学が得意",
+      "最初の報告者だった",
+      "コメント数が23だったことがある",
+      "二次会来ない詐欺をしたことがある",
+      "発表を強制終了させられたことがある",
+      "ヒント6","ヒント7","ヒント8","ヒント9","ヒント10"
+    ]
   },
   {
-    id: 5, name: "伊藤 健太", avatar: "🍵",
-    hints: ["出身地は京都府","趣味は茶道と盆栽","好きな食べ物は湯豆腐","実はロック音楽が大好き","毎日10km走るランナー"]
+    id: 5, name: "武藤くん", avatar: "🔥",
+    hints: [
+      "とにかく元気",
+      "ビーチラグビーをやっている",
+      "遠距離恋愛の経験者",
+      "彼女大好き（なはず）",
+      "発表を聞けなかった、、",
+      "高橋","ヒント7","ヒント8","ヒント9","ヒント10"
+    ]
+  },
+  {
+    id: 6, name: "湯浅さん", avatar: "💧",
+    hints: [
+      "クールなイメージを持たれている",
+      "かっこいい（多分）",
+      "AIについて教えてくださいと言ってくる",
+      "EVHへようこそ！と言われた",
+      "1500円の収入で喜んでいた",
+      "ヒント6","ヒント7","ヒント8","ヒント9","ヒント10"
+    ]
   }
 ];
 
@@ -496,22 +629,20 @@ const HINT_LABELS   = ['','😐 基本情報','😅 ちょっと個人的','😳
 const HINT_ICONS    = ['','💡','👀','😳','🫣','🔥'];
 const REVEAL_TEXTS  = ['ヒントを追加する','もう少し暴露する…','さらに暴露！','限界突破で暴露！！','🔥 最終暴露！！！'];
 
-// ===== STATE =====
 let db = null, myUid, myName, roomCode, isHost;
 let roomRef = null;
 let localAnswers = {};
+let timerInterval  = null;
+let currentQStartedAt = 0;
 
-// ===== FIREBASE INIT（ページ読み込み時に即実行）=====
 (function() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
-    console.log('Firebase接続OK');
   } catch(e) {
     if (e.code === 'app/duplicate-app') {
       db = firebase.database();
     } else {
-      console.error('Firebase初期化失敗:', e);
       document.body.insertAdjacentHTML('afterbegin',
         '<div style="position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;text-align:center;z-index:9999;font-size:0.85rem;">⚠️ Firebase接続エラー: ' + e.message + '</div>');
     }
@@ -523,94 +654,70 @@ function checkDb() {
   return true;
 }
 
-// ===== UID =====
 function getUid() {
   let uid = localStorage.getItem('quiz_uid');
   if (!uid) { uid = Math.random().toString(36).substr(2,12); localStorage.setItem('quiz_uid', uid); }
   return uid;
 }
 
-// ===== QUESTIONS =====
 function generateQuestions() {
-  return [...MEMBERS_DATA].sort(() => Math.random()-0.5).map(member => {
-    const others = MEMBERS_DATA.filter(m => m.id !== member.id).sort(() => Math.random()-0.5).slice(0,3);
-    const choices = [member, ...others].sort(() => Math.random()-0.5)
-      .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
-    return { memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices };
+  const questions = [];
+  MEMBERS_DATA.forEach(member => {
+    [0, 5].forEach(hintOffset => {
+      const others = MEMBERS_DATA.filter(m => m.id !== member.id).sort(() => Math.random()-0.5).slice(0,3);
+      const choices = [member, ...others].sort(() => Math.random()-0.5)
+        .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
+      questions.push({ memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices, hintOffset });
+    });
   });
+  return questions.sort(() => Math.random()-0.5);
 }
 
-// ===== SCREEN =====
 window.showScreen = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 };
 
-// ===== HOME =====
 window.goHost = async function() {
   if (!checkDb()) return;
   myUid = getUid();
   isHost = true;
   roomCode = String(Math.floor(1000 + Math.random()*9000));
-
   const questions = generateQuestions();
   await db.ref('rooms/' + roomCode).set({
-    hostId: myUid,
-    status: 'lobby',
-    currentQ: 0,
-    hintLevel: 0,
-    questions: questions,
-    players: { [myUid]: { name: 'ホスト(司会)', score: 0, isHost: true, joinedAt: Date.now() } },
+    hostId: myUid, status: 'lobby', currentQ: 0, hintLevel: 0, questionStartedAt: 0,
+    questions, players: { [myUid]: { name: 'ホスト(司会)', score: 0, isHost: true, joinedAt: Date.now() } },
     createdAt: Date.now()
   });
-
   document.getElementById('displayRoomCode').textContent = roomCode;
   showScreen('screen-host-lobby');
   listenRoom();
 };
 
-// ===== JOIN =====
 window.joinRoom = async function() {
   if (!checkDb()) return;
   const name = document.getElementById('inputName').value.trim();
   const code = document.getElementById('inputCode').value.trim();
   if (!name) { toast('名前を入力してください'); return; }
   if (code.length !== 4) { toast('4桁のコードを入力してください'); return; }
-
   try {
     const snap = await db.ref('rooms/' + code).once('value');
     if (!snap.exists()) { toast('ルームが見つかりません'); return; }
     const room = snap.val();
     if (room.status !== 'lobby') { toast('すでにゲームが始まっています'); return; }
-
-    myUid = getUid();
-    myName = name;
-    roomCode = code;
-    isHost = false;
-
-    await db.ref('rooms/' + code + '/players/' + myUid).set({
-      name, score: 0, isHost: false, joinedAt: Date.now()
-    });
-
+    myUid = getUid(); myName = name; roomCode = code; isHost = false;
+    await db.ref('rooms/' + code + '/players/' + myUid).set({ name, score: 0, isHost: false, joinedAt: Date.now() });
     document.getElementById('waitRoomLabel').textContent = 'ルーム ' + code;
     showScreen('screen-player-wait');
     listenRoom();
-  } catch(e) {
-    toast('エラーが発生しました: ' + e.message);
-    console.error(e);
-  }
+  } catch(e) { toast('エラーが発生しました: ' + e.message); }
 };
 
-// ===== ROOM LISTENER =====
 function listenRoom() {
   if (roomRef) roomRef.off();
   roomRef = db.ref('rooms/' + roomCode);
-  roomRef.on('value', snap => {
-    const room = snap.val();
-    if (!room) return;
-    handleRoom(room);
-  });
+  roomRef.on('value', snap => { const room = snap.val(); if (!room) return; handleRoom(room); });
 }
 
 function handleRoom(room) {
@@ -618,38 +725,55 @@ function handleRoom(room) {
   const players = room.players || {};
   const playerList = Object.entries(players).filter(([,p]) => !p.isHost);
   const playerCount = playerList.length;
-
   if (status === 'lobby') {
     if (isHost) {
-      // Update lobby
       document.getElementById('lobbyCount').textContent = playerCount;
-      const list = document.getElementById('lobbyPlayerList');
-      list.innerHTML = playerList.map(([,p]) =>
+      document.getElementById('lobbyPlayerList').innerHTML = playerList.map(([,p]) =>
         `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
       ).join('') || '<div style="color:#555;font-size:0.85rem;">まだ誰も参加していません</div>';
       document.getElementById('btnStartGame').disabled = playerCount < 1;
     } else {
-      // Update wait screen
       document.getElementById('waitPlayerCount').textContent = playerCount;
-      const list = document.getElementById('waitPlayerList');
-      list.innerHTML = playerList.map(([,p]) =>
+      document.getElementById('waitPlayerList').innerHTML = playerList.map(([,p]) =>
         `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
       ).join('');
     }
     return;
   }
-
   if (status === 'question') renderQuestion(room);
   if (status === 'review')   renderReview(room);
   if (status === 'finished') renderResult(room);
 }
 
-// ===== START GAME =====
 window.startGame = async function() {
-  await db.ref('rooms/' + roomCode).update({ status: 'question', currentQ: 0, hintLevel: 0 });
+  await db.ref('rooms/' + roomCode).update({
+    status: 'question', currentQ: 0, hintLevel: 0,
+    questionStartedAt: firebase.database.ServerValue.TIMESTAMP
+  });
 };
 
-// ===== RENDER QUESTION =====
+function startTimer(startedAt) {
+  clearTimerInterval();
+  currentQStartedAt = startedAt;
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = Math.max(0, TIMER_DURATION - elapsed);
+    ['hq-timer', 'pq-timer'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = remaining + '秒';
+      el.className = 'timer-display';
+      if (remaining <= 10) el.classList.add('danger');
+      else if (remaining <= 20) el.classList.add('warn');
+    });
+    if (remaining <= 0) { clearTimerInterval(); if (isHost) lockAnswers(); }
+  }, 200);
+}
+
+function clearTimerInterval() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
 function renderQuestion(room) {
   const q = room.questions[room.currentQ];
   const total = room.questions.length;
@@ -658,60 +782,52 @@ function renderQuestion(room) {
   const member = MEMBERS_DATA.find(m => m.id === q.memberId);
   const players = room.players || {};
   const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost);
-
+  if (room.questionStartedAt && room.questionStartedAt !== currentQStartedAt) startTimer(room.questionStartedAt);
   if (isHost) {
     showScreen('screen-host-question');
     document.getElementById('hq-qLabel').textContent = `${qIdx+1}/${total}`;
     document.getElementById('hq-progressBar').style.width = `${((qIdx)/total)*100}%`;
+    const hintOffset = q.hintOffset || 0;
     updateShame('hq', hintLevel);
-    renderHints('hq-hintsArea', member.hints, hintLevel);
-
-    // Answer progress
-    const answered = playerEntries.filter(([uid,p]) => p.answers && p.answers[qIdx] != null).length;
+    renderHints('hq-hintsArea', member.hints, hintLevel, hintOffset);
+    const answered = playerEntries.filter(([,p]) => p.answers && p.answers[qIdx] != null).length;
     const total_players = playerEntries.length;
     document.getElementById('hq-answeredCount').textContent = answered;
     document.getElementById('hq-totalCount').textContent = total_players;
     document.getElementById('hq-answerBar').style.width = total_players > 0 ? `${(answered/total_players)*100}%` : '0%';
-
-    // Reveal button
     const revBtn = document.getElementById('hq-btnReveal');
-    if (hintLevel >= member.hints.length) {
-      revBtn.disabled = true;
-      revBtn.textContent = '✅ ヒントはすべて公開済み';
-    } else {
-      revBtn.disabled = false;
-      revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`;
-    }
-
+    if (hintLevel >= 5) { revBtn.disabled = true; revBtn.textContent = '✅ ヒントはすべて公開済み'; }
+    else { revBtn.disabled = false; revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`; }
   } else {
     showScreen('screen-player-question');
     document.getElementById('pq-qLabel').textContent = `${qIdx+1}/${total}`;
     document.getElementById('pq-progressBar').style.width = `${((qIdx)/total)*100}%`;
-    const myScore = (players[myUid]?.score) || 0;
-    document.getElementById('pq-score').textContent = myScore + 'pt';
+    document.getElementById('pq-score').textContent = ((players[myUid]?.score) || 0) + 'pt';
+    const hintOffset = q.hintOffset || 0;
     updateShame('pq', hintLevel);
-    renderHints('pq-hintsArea', member.hints, hintLevel);
-
-    // Already answered?
+    renderHints('pq-hintsArea', member.hints, hintLevel, hintOffset);
     const myAnswer = players[myUid]?.answers?.[qIdx];
     const badge = document.getElementById('pq-answeredBadge');
+    const penalty = document.getElementById('pq-penaltyBadge');
     if (myAnswer != null) {
       badge.style.display = 'block';
+      penalty.style.display = myAnswer.correct ? 'none' : 'block';
       renderChoicesResult('pq-choices', q.choices, q.memberId, myAnswer.choiceId);
     } else {
-      badge.style.display = 'none';
+      badge.style.display = 'none'; penalty.style.display = 'none';
       renderChoices('pq-choices', q.choices, qIdx, hintLevel);
     }
   }
 }
 
-function renderHints(containerId, hints, hintLevel) {
+function renderHints(containerId, hints, hintLevel, hintOffset) {
   const el = document.getElementById(containerId);
   if (hintLevel === 0) {
     el.innerHTML = '<div class="no-hints">' + (isHost ? 'まだヒントがありません' : 'ホストがヒントを開くのを待ってね') + '</div>';
     return;
   }
-  el.innerHTML = hints.slice(0, hintLevel).map((h, i) => `
+  const offset = hintOffset || 0;
+  el.innerHTML = hints.slice(offset, offset + hintLevel).map((h, i) => `
     <div class="hint-card ${HINT_CLASSES[i+1]}">
       <div class="hint-lv-label">${HINT_LABELS[i+1]}</div>
       <div class="hint-text">${h}</div>
@@ -747,44 +863,38 @@ function updateShame(prefix, lv) {
   document.getElementById(`${prefix}-shameBar`).style.width = `${(lv/5)*100}%`;
 }
 
-// ===== ACTIONS =====
 window.revealHint = async function() {
   const snap = await db.ref('rooms/' + roomCode).once('value');
   const room = snap.val();
   const current = room.hintLevel || 0;
-  const q = room.questions[room.currentQ];
-  const member = MEMBERS_DATA.find(m => m.id === q.memberId);
-  if (current < member.hints.length) {
-    await db.ref('rooms/' + roomCode).update({ hintLevel: current + 1 });
-  }
+  if (current < 5) await db.ref('rooms/' + roomCode).update({ hintLevel: current + 1 });
 };
 
 window.submitAnswer = async function(choiceId, qIdx, hintLevel) {
   if (localAnswers[qIdx] != null) return;
   localAnswers[qIdx] = choiceId;
-
   const snap = await db.ref('rooms/' + roomCode).once('value');
   const room = snap.val();
   const q = room.questions[qIdx];
   const correct = choiceId === q.memberId;
-  const pts = correct ? Math.max(10, 100 - hintLevel * 15) : 0;
+  const pts = correct ? Math.max(10, 100 - hintLevel * 15) : WRONG_PTS;
   const currentScore = (room.players[myUid] && room.players[myUid].score) || 0;
-
   const answerUpdate = {};
   answerUpdate['score'] = currentScore + pts;
   answerUpdate['answers/' + qIdx] = { choiceId, correct, pts };
   await db.ref('rooms/' + roomCode + '/players/' + myUid).update(answerUpdate);
-
   document.getElementById('pq-answeredBadge').style.display = 'block';
+  document.getElementById('pq-penaltyBadge').style.display = correct ? 'none' : 'block';
   renderChoicesResult('pq-choices', q.choices, q.memberId, choiceId);
 };
 
 window.lockAnswers = async function() {
+  clearTimerInterval();
   await db.ref('rooms/' + roomCode).update({ status: 'review' });
 };
 
-// ===== REVIEW =====
 function renderReview(room) {
+  clearTimerInterval();
   showScreen('screen-review');
   const q = room.questions[room.currentQ];
   const total = room.questions.length;
@@ -792,33 +902,31 @@ function renderReview(room) {
   const players = room.players || {};
   const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost)
     .sort((a,b) => (b[1].score||0) - (a[1].score||0));
-
   document.getElementById('rv-qLabel').textContent = `${qIdx+1}/${total}`;
   document.getElementById('rv-progressBar').style.width = `${((qIdx+1)/total)*100}%`;
   document.getElementById('rv-avatar').textContent = q.memberAvatar;
   document.getElementById('rv-name').textContent = q.memberName;
-
   if (!isHost) {
-    const myScore = players[myUid]?.score || 0;
-    const myAns = players[myUid]?.answers?.[qIdx];
     const el = document.getElementById('rv-myScore');
     el.style.display = 'inline';
-    el.textContent = myScore + 'pt';
+    el.textContent = (players[myUid]?.score || 0) + 'pt';
   }
-
   document.getElementById('rv-players').innerHTML = playerEntries.map(([uid, p]) => {
     const ans = p.answers?.[qIdx];
-    const ok = ans?.correct;
+    if (!ans) return `<div class="review-player-row no-ans">
+      <span>⏭</span><span>${p.name}</span>
+      <span class="review-pts" style="color:#555;">未回答</span>
+      <span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span>
+    </div>`;
+    const ok = ans.correct;
+    const ptsText = ans.pts >= 0 ? `+${ans.pts}pt` : `${ans.pts}pt`;
     return `<div class="review-player-row ${ok?'ok':'ng'}">
-      <span>${ok?'✅':'❌'}</span>
-      <span>${p.name}</span>
-      ${ans ? `<span class="review-pts">+${ans.pts}pt</span>` : ''}
+      <span>${ok?'✅':'❌'}</span><span>${p.name}</span>
+      <span class="review-pts ${ans.pts >= 0 ? 'pos' : 'neg'}">${ptsText}</span>
       <span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span>
     </div>`;
   }).join('');
-
-  const nextWrap = document.getElementById('rv-nextWrap');
-  nextWrap.style.display = isHost ? 'block' : 'none';
+  document.getElementById('rv-nextWrap').style.display = isHost ? 'block' : 'none';
 }
 
 window.nextQuestion = async function() {
@@ -828,60 +936,50 @@ window.nextQuestion = async function() {
   if (nextQ >= room.questions.length) {
     await db.ref('rooms/' + roomCode).update({ status: 'finished' });
   } else {
-    await db.ref('rooms/' + roomCode).update({ status: 'question', currentQ: nextQ, hintLevel: 0 });
+    await db.ref('rooms/' + roomCode).update({
+      status: 'question', currentQ: nextQ, hintLevel: 0,
+      questionStartedAt: firebase.database.ServerValue.TIMESTAMP
+    });
   }
 };
 
-// ===== RESULT =====
 function renderResult(room) {
+  clearTimerInterval();
   showScreen('screen-result');
   const players = room.players || {};
-  const sorted = Object.entries(players)
-    .filter(([,p]) => !p.isHost)
+  const sorted = Object.entries(players).filter(([,p]) => !p.isHost)
     .sort((a,b) => (b[1].score||0) - (a[1].score||0));
-
-  const podiumEl = document.getElementById('result-podium');
-  const restEl = document.getElementById('result-rest');
-
-  // Top 3 podium (2nd, 1st, 3rd order visually)
   const top3 = sorted.slice(0, 3);
-  const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean); // 2nd, 1st, 3rd
-  const ranks = [2, 1, 3];
-  const rankEmojis = ['🥇','🥈','🥉'];
-  const rankActual = [1, 2, 3];
-
-  podiumEl.innerHTML = podiumOrder.map((entry, i) => {
+  const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
+  document.getElementById('result-podium').innerHTML = podiumOrder.map((entry, i) => {
     const [, p] = entry;
-    const rank = rankActual[i === 0 ? 1 : i === 1 ? 0 : 2]; // visual position to actual rank
-    const rankDisplay = [2,1,3][i];
     return `<div class="podium-col">
       <div class="podium-name">${p.name}</div>
       <div class="podium-score">${p.score||0}pt</div>
       <div class="podium-block">
         <div class="podium-rank">${['🥈','🥇','🥉'][i]}</div>
-        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${rankDisplay}位</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${[2,1,3][i]}位</div>
       </div>
     </div>`;
   }).join('');
-
-  restEl.innerHTML = sorted.slice(3).map(([,p], i) => `
+  document.getElementById('result-rest').innerHTML = sorted.slice(3).map(([,p], i) => `
     <div class="result-row">
       <span class="result-rank-num">${i+4}位</span>
       <span>${p.name}</span>
       <span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span>
     </div>
   `).join('');
-
   if ((sorted[0]?.[1]?.score || 0) > 0) launchConfetti();
 }
 
 window.backToHome = function() {
   if (roomRef) roomRef.off();
+  clearTimerInterval();
   localAnswers = {};
+  currentQStartedAt = 0;
   showScreen('screen-home');
 };
 
-// ===== UTILS =====
 function toast(msg) {
   const el = document.createElement('div');
   el.className = 'toast'; el.textContent = msg;
@@ -899,7 +997,6 @@ function launchConfetti() {
     setTimeout(() => el.remove(), 4000);
   }
 }
-
 
 </script>
 </body>
