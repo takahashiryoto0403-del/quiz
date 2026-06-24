@@ -199,6 +199,7 @@ body {
 
 /* ===== CHOICES ===== */
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.choices .choice-btn:last-child:nth-child(odd) { grid-column: span 2; }
 .choice-btn {
   background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
   color: #fff; padding: 14px 10px; border-radius: 12px;
@@ -641,7 +642,7 @@ const MEMBERS_DATA = [
     ]
   },
   {
-    id: 6, name: "湯浅さん", avatar: "💧",
+    id: 6, name: "湯浅室長", avatar: "💧",
     hints: [
       // 1問目
       "クールなイメージ",
@@ -700,11 +701,12 @@ function getUid() {
 }
 
 // ===== QUESTIONS =====
+// 各メンバーを2問ずつ出題（計10問）、選択肢は全5人
 function generateQuestions() {
   const questions = [];
   MEMBERS_DATA.forEach(member => {
     [0, 4].forEach(hintOffset => {
-      const others = MEMBERS_DATA.filter(m => m.id !== member.id).sort(() => Math.random()-0.5).slice(0,3);
+      const others = MEMBERS_DATA.filter(m => m.id !== member.id);
       const choices = [member, ...others].sort(() => Math.random()-0.5)
         .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
       questions.push({ memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices, hintOffset });
@@ -949,7 +951,7 @@ function renderHints(containerId, hints, hintLevel, hintOffset) {
 }
 
 function renderChoices(containerId, choices, qIdx, hintLevel) {
-  const letters = ['A','B','C','D'];
+  const letters = ['A','B','C','D','E'];
   document.getElementById(containerId).innerHTML = choices.map((c, i) => `
     <button class="choice-btn" onclick="submitAnswer(${c.id}, ${qIdx}, ${hintLevel})">
       <span class="choice-key">${letters[i]}</span>${c.avatar} ${c.name}
@@ -958,7 +960,7 @@ function renderChoices(containerId, choices, qIdx, hintLevel) {
 }
 
 function renderChoicesResult(containerId, choices, correctId, myChoiceId) {
-  const letters = ['A','B','C','D'];
+  const letters = ['A','B','C','D','E'];
   document.getElementById(containerId).innerHTML = choices.map((c, i) => {
     let cls = '';
     if (c.id === correctId) cls = 'correct';
@@ -1109,7 +1111,6 @@ function runRankingReveal(sorted) {
     scoreEl.className = 'rank-score';
   }
 
-  // Intro
   setCard('', '🏆', '結果発表！', '', 'rank-medal', 'rank-intro-text');
 
   const MEDALS = ['🏆', '🥈', '🥉'];
