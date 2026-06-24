@@ -560,36 +560,27 @@ const FIREBASE_CONFIG = {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 
-// =============================================
-// FIREBASE CONFIG — ここを書き換えてください
-// =============================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDcB1zy5m1fY-U31eMuSAiVQJlqDoC9AvQ",
   authDomain: "quiz-game-for-evh.firebaseapp.com",
   databaseURL: "https://quiz-game-for-evh-default-rtdb.firebaseio.com",
   projectId: "quiz-game-for-evh",
   storageBucket: "quiz-game-for-evh.firebasestorage.app",
-  messagingSenderId: "928026357308",
+  messagingSenderId: "928026357880",
   appId: "1:928026357308:web:fa664390f5e1aa21021d39"
 };
-// =============================================
 
-// ===== GAME SETTINGS =====
-const TIMER_DURATION = 30;  // 秒
-const WRONG_PTS      = -30; // 不正解ペナルティ
+const TIMER_DURATION = 30;
+const WRONG_PTS      = -30;
 
-// ===== MEMBERS DATA =====
-// hints は 8個（前半4個が1問目、後半4個が2問目）
 const MEMBERS_DATA = [
   {
     id: 1, name: "伊澤GM", avatar: "😎",
     hints: [
-      // 1問目
       "DIYが好きで、最近花を育てている",
       "ビールの美味しさがいまだにわからない",
       "ぶん殴るゲームが大好き",
       "大学時代、髪でやんちゃしていた",
-      // 2問目
       "真面目に見られる",
       "公園行きすぎ",
       "小学生の頃はニコニコしていた",
@@ -599,12 +590,10 @@ const MEMBERS_DATA = [
   {
     id: 2, name: "船橋GM", avatar: "🚢",
     hints: [
-      // 1問目
       "運動部出身",
       "目立つのが大好き",
       "わがままと言われることが多い",
       "EV部ゴルフコンペで優勝したことがある",
-      // 2問目
       "数百万円の価値があるカードゲームを家に眠らせている",
       "トレーディングカードゲームの元日本ランカー",
       "音痴（ジャイアン？？？？？）",
@@ -614,12 +603,10 @@ const MEMBERS_DATA = [
   {
     id: 3, name: "成瀬GM", avatar: "🎯",
     hints: [
-      // 1問目
       "ラーメンが大好き",
       "ポイ活をしている",
       "スマホをめちゃくちゃ変える",
       "良いベッド欲しい",
-      // 2問目
       "カラオケの十八番がヤバイTシャツ屋さん",
       "PSゴールドに出演した最強の経歴あり",
       "頻尿の持ち主",
@@ -629,12 +616,10 @@ const MEMBERS_DATA = [
   {
     id: 4, name: "村上GM", avatar: "🦁",
     hints: [
-      // 1問目
       "最初の報告者だった",
       "コメント数が23件だった",
       "二次会来ない詐欺の王",
       "Bridge Talk強制終了させられた",
-      // 2問目
       "「かつての趣味」多すぎ人間",
       "酒やめる（らしい）",
       "人脈薄い（仲良くしてあげましょう）",
@@ -644,12 +629,10 @@ const MEMBERS_DATA = [
   {
     id: 6, name: "湯浅室長", avatar: "💧",
     hints: [
-      // 1問目
       "クールなイメージ",
       "かっこいい（多分）",
       "AIについて弟子入りさせてください",
       "1500円の収入で喜んでいた",
-      // 2問目
       "趣味多すぎる",
       "うっし、って言って立ち上がる",
       "盛り上げのプロ",
@@ -663,7 +646,6 @@ const HINT_LABELS   = ['','😐 基本情報','😅 ちょっと個人的','😳
 const HINT_ICONS    = ['','💡','👀','😳','🫣','🔥'];
 const REVEAL_TEXTS  = ['ヒントを追加する','もう少し暴露する…','さらに暴露！','限界突破で暴露！！','🔥 最終暴露！！！'];
 
-// ===== STATE =====
 let db = null, myUid, myName, roomCode, isHost;
 let roomRef = null;
 let localAnswers = {};
@@ -671,17 +653,14 @@ let timerInterval  = null;
 let currentQStartedAt = 0;
 let revealStarted = false;
 
-// ===== FIREBASE INIT =====
 (function() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
-    console.log('Firebase接続OK');
   } catch(e) {
     if (e.code === 'app/duplicate-app') {
       db = firebase.database();
     } else {
-      console.error('Firebase初期化失敗:', e);
       document.body.insertAdjacentHTML('afterbegin',
         '<div style="position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:12px;text-align:center;z-index:9999;font-size:0.85rem;">⚠️ Firebase接続エラー: ' + e.message + '</div>');
     }
@@ -693,100 +672,69 @@ function checkDb() {
   return true;
 }
 
-// ===== UID =====
 function getUid() {
   let uid = localStorage.getItem('quiz_uid');
   if (!uid) { uid = Math.random().toString(36).substr(2,12); localStorage.setItem('quiz_uid', uid); }
   return uid;
 }
 
-// ===== QUESTIONS =====
-// 各メンバーを2問ずつ出題（計10問）、選択肢は全5人
 function generateQuestions() {
   const questions = [];
   MEMBERS_DATA.forEach(member => {
     [0, 4].forEach(hintOffset => {
-      const others = MEMBERS_DATA.filter(m => m.id !== member.id);
-      const choices = [member, ...others].sort(() => Math.random()-0.5)
-        .map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
+      const choices = MEMBERS_DATA.map(m => ({ id: m.id, name: m.name, avatar: m.avatar }));
       questions.push({ memberId: member.id, memberName: member.name, memberAvatar: member.avatar, choices, hintOffset });
     });
   });
   return questions.sort(() => Math.random()-0.5);
 }
 
-// ===== SCREEN =====
 window.showScreen = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 };
 
-// ===== HOME =====
 window.goHost = async function() {
   if (!checkDb()) return;
   myUid = getUid();
   isHost = true;
   roomCode = String(Math.floor(1000 + Math.random()*9000));
-
   const questions = generateQuestions();
   await db.ref('rooms/' + roomCode).set({
-    hostId: myUid,
-    status: 'lobby',
-    currentQ: 0,
-    hintLevel: 0,
-    questionStartedAt: 0,
-    questions: questions,
+    hostId: myUid, status: 'lobby', currentQ: 0, hintLevel: 0,
+    questionStartedAt: 0, questions,
     players: { [myUid]: { name: 'ホスト(司会)', score: 0, isHost: true, joinedAt: Date.now() } },
     createdAt: Date.now()
   });
-
   document.getElementById('displayRoomCode').textContent = roomCode;
   showScreen('screen-host-lobby');
   listenRoom();
 };
 
-// ===== JOIN =====
 window.joinRoom = async function() {
   if (!checkDb()) return;
   const name = document.getElementById('inputName').value.trim();
   const code = document.getElementById('inputCode').value.trim();
   if (!name) { toast('名前を入力してください'); return; }
   if (code.length !== 4) { toast('4桁のコードを入力してください'); return; }
-
   try {
     const snap = await db.ref('rooms/' + code).once('value');
     if (!snap.exists()) { toast('ルームが見つかりません'); return; }
     const room = snap.val();
     if (room.status !== 'lobby') { toast('すでにゲームが始まっています'); return; }
-
-    myUid = getUid();
-    myName = name;
-    roomCode = code;
-    isHost = false;
-
-    await db.ref('rooms/' + code + '/players/' + myUid).set({
-      name, score: 0, isHost: false, joinedAt: Date.now()
-    });
-
+    myUid = getUid(); myName = name; roomCode = code; isHost = false;
+    await db.ref('rooms/' + code + '/players/' + myUid).set({ name, score: 0, isHost: false, joinedAt: Date.now() });
     document.getElementById('waitRoomLabel').textContent = 'ルーム ' + code;
     showScreen('screen-player-wait');
     listenRoom();
-  } catch(e) {
-    toast('エラーが発生しました: ' + e.message);
-    console.error(e);
-  }
+  } catch(e) { toast('エラーが発生しました: ' + e.message); }
 };
 
-// ===== ROOM LISTENER =====
 function listenRoom() {
   if (roomRef) roomRef.off();
   roomRef = db.ref('rooms/' + roomCode);
-  roomRef.on('value', snap => {
-    const room = snap.val();
-    if (!room) return;
-    handleRoom(room);
-  });
+  roomRef.on('value', snap => { const room = snap.val(); if (!room) return; handleRoom(room); });
 }
 
 function handleRoom(room) {
@@ -794,49 +742,39 @@ function handleRoom(room) {
   const players = room.players || {};
   const playerList = Object.entries(players).filter(([,p]) => !p.isHost);
   const playerCount = playerList.length;
-
   if (status === 'lobby') {
     if (isHost) {
       document.getElementById('lobbyCount').textContent = playerCount;
-      const list = document.getElementById('lobbyPlayerList');
-      list.innerHTML = playerList.map(([,p]) =>
+      document.getElementById('lobbyPlayerList').innerHTML = playerList.map(([,p]) =>
         `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
       ).join('') || '<div style="color:#555;font-size:0.85rem;">まだ誰も参加していません</div>';
       document.getElementById('btnStartGame').disabled = playerCount < 1;
     } else {
       document.getElementById('waitPlayerCount').textContent = playerCount;
-      const list = document.getElementById('waitPlayerList');
-      list.innerHTML = playerList.map(([,p]) =>
+      document.getElementById('waitPlayerList').innerHTML = playerList.map(([,p]) =>
         `<div class="player-item"><div class="player-dot"></div>${p.name}</div>`
       ).join('');
     }
     return;
   }
-
   if (status === 'question') renderQuestion(room);
   if (status === 'review')   renderReview(room);
   if (status === 'finished') renderResult(room);
 }
 
-// ===== START GAME =====
 window.startGame = async function() {
   await db.ref('rooms/' + roomCode).update({
-    status: 'question',
-    currentQ: 0,
-    hintLevel: 0,
+    status: 'question', currentQ: 0, hintLevel: 0,
     questionStartedAt: firebase.database.ServerValue.TIMESTAMP
   });
 };
 
-// ===== TIMER =====
 function startTimer(startedAt) {
   clearTimerInterval();
   currentQStartedAt = startedAt;
-
   timerInterval = setInterval(() => {
     const elapsed   = Math.floor((Date.now() - startedAt) / 1000);
     const remaining = Math.max(0, TIMER_DURATION - elapsed);
-
     ['hq-timer', 'pq-timer'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -845,25 +783,16 @@ function startTimer(startedAt) {
       if (remaining <= 10) el.classList.add('danger');
       else if (remaining <= 20) el.classList.add('warn');
     });
-
-    if (remaining <= 0) {
-      clearTimerInterval();
-      if (isHost) lockAnswers();
-    }
+    if (remaining <= 0) { clearTimerInterval(); if (isHost) lockAnswers(); }
   }, 200);
-
-  // ヒント自動公開（5秒おきに1枚ずつ）
   if (isHost) {
-    const HINT_INTERVAL = 5; // 秒
     for (let i = 1; i <= 4; i++) {
       setTimeout(async () => {
         if (currentQStartedAt !== startedAt) return;
         const snap = await db.ref('rooms/' + roomCode + '/hintLevel').once('value');
         const current = snap.val() || 0;
-        if (current < i) {
-          await db.ref('rooms/' + roomCode).update({ hintLevel: i });
-        }
-      }, HINT_INTERVAL * i * 1000);
+        if (current < i) await db.ref('rooms/' + roomCode).update({ hintLevel: i });
+      }, 5000 * i);
     }
   }
 }
@@ -872,7 +801,6 @@ function clearTimerInterval() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 }
 
-// ===== RENDER QUESTION =====
 function renderQuestion(room) {
   const q = room.questions[room.currentQ];
   const total = room.questions.length;
@@ -881,55 +809,36 @@ function renderQuestion(room) {
   const member = MEMBERS_DATA.find(m => m.id === q.memberId);
   const players = room.players || {};
   const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost);
-
-  if (room.questionStartedAt && room.questionStartedAt !== currentQStartedAt) {
-    startTimer(room.questionStartedAt);
-  }
-
+  if (room.questionStartedAt && room.questionStartedAt !== currentQStartedAt) startTimer(room.questionStartedAt);
   if (isHost) {
     showScreen('screen-host-question');
     document.getElementById('hq-qLabel').textContent = `${qIdx+1}/${total}`;
     document.getElementById('hq-progressBar').style.width = `${((qIdx)/total)*100}%`;
-    const hintOffset = q.hintOffset || 0;
     updateShame('hq', hintLevel);
-    renderHints('hq-hintsArea', member.hints, hintLevel, hintOffset);
-
-    const answered = playerEntries.filter(([uid,p]) => p.answers && p.answers[qIdx] != null).length;
-    const total_players = playerEntries.length;
+    renderHints('hq-hintsArea', member.hints, hintLevel, q.hintOffset || 0);
+    const answered = playerEntries.filter(([,p]) => p.answers && p.answers[qIdx] != null).length;
     document.getElementById('hq-answeredCount').textContent = answered;
-    document.getElementById('hq-totalCount').textContent = total_players;
-    document.getElementById('hq-answerBar').style.width = total_players > 0 ? `${(answered/total_players)*100}%` : '0%';
-
+    document.getElementById('hq-totalCount').textContent = playerEntries.length;
+    document.getElementById('hq-answerBar').style.width = playerEntries.length > 0 ? `${(answered/playerEntries.length)*100}%` : '0%';
     const revBtn = document.getElementById('hq-btnReveal');
-    if (hintLevel >= 4) {
-      revBtn.disabled = true;
-      revBtn.textContent = '✅ ヒントはすべて公開済み';
-    } else {
-      revBtn.disabled = false;
-      revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`;
-    }
-
+    if (hintLevel >= 4) { revBtn.disabled = true; revBtn.textContent = '✅ ヒントはすべて公開済み'; }
+    else { revBtn.disabled = false; revBtn.textContent = `${HINT_ICONS[hintLevel+1]} ${REVEAL_TEXTS[hintLevel]}`; }
   } else {
     showScreen('screen-player-question');
     document.getElementById('pq-qLabel').textContent = `${qIdx+1}/${total}`;
     document.getElementById('pq-progressBar').style.width = `${((qIdx)/total)*100}%`;
-    const myScore = (players[myUid]?.score) || 0;
-    document.getElementById('pq-score').textContent = myScore + 'pt';
-    const hintOffset = q.hintOffset || 0;
+    document.getElementById('pq-score').textContent = ((players[myUid]?.score) || 0) + 'pt';
     updateShame('pq', hintLevel);
-    renderHints('pq-hintsArea', member.hints, hintLevel, hintOffset);
-
+    renderHints('pq-hintsArea', member.hints, hintLevel, q.hintOffset || 0);
     const myAnswer = players[myUid]?.answers?.[qIdx];
-    const badge   = document.getElementById('pq-answeredBadge');
+    const badge = document.getElementById('pq-answeredBadge');
     const penalty = document.getElementById('pq-penaltyBadge');
-
     if (myAnswer != null) {
       badge.style.display = 'block';
       penalty.style.display = myAnswer.correct ? 'none' : 'block';
       renderChoicesResult('pq-choices', q.choices, q.memberId, myAnswer.choiceId);
     } else {
-      badge.style.display = 'none';
-      penalty.style.display = 'none';
+      badge.style.display = 'none'; penalty.style.display = 'none';
       renderChoices('pq-choices', q.choices, qIdx, hintLevel);
     }
   }
@@ -941,13 +850,11 @@ function renderHints(containerId, hints, hintLevel, hintOffset) {
     el.innerHTML = '<div class="no-hints">' + (isHost ? 'まだヒントがありません' : 'ホストがヒントを開くのを待ってね') + '</div>';
     return;
   }
-  const offset = hintOffset || 0;
-  el.innerHTML = hints.slice(offset, offset + hintLevel).map((h, i) => `
+  el.innerHTML = hints.slice(hintOffset, hintOffset + hintLevel).map((h, i) => `
     <div class="hint-card ${HINT_CLASSES[i+1]}">
       <div class="hint-lv-label">${HINT_LABELS[i+1]}</div>
       <div class="hint-text">${h}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function renderChoices(containerId, choices, qIdx, hintLevel) {
@@ -955,8 +862,7 @@ function renderChoices(containerId, choices, qIdx, hintLevel) {
   document.getElementById(containerId).innerHTML = choices.map((c, i) => `
     <button class="choice-btn" onclick="submitAnswer(${c.id}, ${qIdx}, ${hintLevel})">
       <span class="choice-key">${letters[i]}</span>${c.avatar} ${c.name}
-    </button>
-  `).join('');
+    </button>`).join('');
 }
 
 function renderChoicesResult(containerId, choices, correctId, myChoiceId) {
@@ -978,32 +884,25 @@ function updateShame(prefix, lv) {
   document.getElementById(`${prefix}-shameBar`).style.width = `${(lv/5)*100}%`;
 }
 
-// ===== ACTIONS =====
 window.revealHint = async function() {
   const snap = await db.ref('rooms/' + roomCode).once('value');
   const room = snap.val();
   const current = room.hintLevel || 0;
-  if (current < 5) {
-    await db.ref('rooms/' + roomCode).update({ hintLevel: current + 1 });
-  }
+  if (current < 5) await db.ref('rooms/' + roomCode).update({ hintLevel: current + 1 });
 };
 
 window.submitAnswer = async function(choiceId, qIdx, hintLevel) {
   if (localAnswers[qIdx] != null) return;
   localAnswers[qIdx] = choiceId;
-
   const snap = await db.ref('rooms/' + roomCode).once('value');
   const room = snap.val();
   const q = room.questions[qIdx];
   const correct = choiceId === q.memberId;
   const pts = correct ? Math.max(10, 100 - hintLevel * 15) : WRONG_PTS;
-  const currentScore = (room.players[myUid] && room.players[myUid].score) || 0;
-
-  const answerUpdate = {};
-  answerUpdate['score'] = currentScore + pts;
+  const currentScore = (room.players[myUid]?.score) || 0;
+  const answerUpdate = { score: currentScore + pts };
   answerUpdate['answers/' + qIdx] = { choiceId, correct, pts };
   await db.ref('rooms/' + roomCode + '/players/' + myUid).update(answerUpdate);
-
   document.getElementById('pq-answeredBadge').style.display = 'block';
   document.getElementById('pq-penaltyBadge').style.display = correct ? 'none' : 'block';
   renderChoicesResult('pq-choices', q.choices, q.memberId, choiceId);
@@ -1014,7 +913,6 @@ window.lockAnswers = async function() {
   await db.ref('rooms/' + roomCode).update({ status: 'review' });
 };
 
-// ===== REVIEW =====
 function renderReview(room) {
   clearTimerInterval();
   showScreen('screen-review');
@@ -1024,41 +922,23 @@ function renderReview(room) {
   const players = room.players || {};
   const playerEntries = Object.entries(players).filter(([,p]) => !p.isHost)
     .sort((a,b) => (b[1].score||0) - (a[1].score||0));
-
   document.getElementById('rv-qLabel').textContent = `${qIdx+1}/${total}`;
   document.getElementById('rv-progressBar').style.width = `${((qIdx+1)/total)*100}%`;
   document.getElementById('rv-avatar').textContent = q.memberAvatar;
   document.getElementById('rv-name').textContent = q.memberName;
-
   if (!isHost) {
-    const myScore = players[myUid]?.score || 0;
     const el = document.getElementById('rv-myScore');
     el.style.display = 'inline';
-    el.textContent = myScore + 'pt';
+    el.textContent = (players[myUid]?.score || 0) + 'pt';
   }
-
-  document.getElementById('rv-players').innerHTML = playerEntries.map(([uid, p]) => {
+  document.getElementById('rv-players').innerHTML = playerEntries.map(([, p]) => {
     const ans = p.answers?.[qIdx];
-    if (!ans) {
-      return `<div class="review-player-row no-ans">
-        <span>⏭</span><span>${p.name}</span>
-        <span class="review-pts" style="color:#555;">未回答</span>
-        <span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span>
-      </div>`;
-    }
+    if (!ans) return `<div class="review-player-row no-ans"><span>⏭</span><span>${p.name}</span><span class="review-pts" style="color:#555;">未回答</span><span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span></div>`;
     const ok = ans.correct;
-    const ptsClass = ans.pts >= 0 ? 'pos' : 'neg';
-    const ptsText  = ans.pts >= 0 ? `+${ans.pts}pt` : `${ans.pts}pt`;
-    return `<div class="review-player-row ${ok?'ok':'ng'}">
-      <span>${ok?'✅':'❌'}</span>
-      <span>${p.name}</span>
-      <span class="review-pts ${ptsClass}">${ptsText}</span>
-      <span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span>
-    </div>`;
+    const ptsText = ans.pts >= 0 ? `+${ans.pts}pt` : `${ans.pts}pt`;
+    return `<div class="review-player-row ${ok?'ok':'ng'}"><span>${ok?'✅':'❌'}</span><span>${p.name}</span><span class="review-pts ${ans.pts>=0?'pos':'neg'}">${ptsText}</span><span style="margin-left:auto;color:#888;font-size:0.8rem;">${p.score||0}pt</span></div>`;
   }).join('');
-
-  const nextWrap = document.getElementById('rv-nextWrap');
-  nextWrap.style.display = isHost ? 'block' : 'none';
+  document.getElementById('rv-nextWrap').style.display = isHost ? 'block' : 'none';
 }
 
 window.nextQuestion = async function() {
@@ -1069,50 +949,35 @@ window.nextQuestion = async function() {
     await db.ref('rooms/' + roomCode).update({ status: 'finished' });
   } else {
     await db.ref('rooms/' + roomCode).update({
-      status: 'question',
-      currentQ: nextQ,
-      hintLevel: 0,
+      status: 'question', currentQ: nextQ, hintLevel: 0,
       questionStartedAt: firebase.database.ServerValue.TIMESTAMP
     });
   }
 };
 
-// ===== RESULT =====
 function renderResult(room) {
   clearTimerInterval();
   if (revealStarted) return;
   revealStarted = true;
-
   const players = room.players || {};
-  const sorted = Object.entries(players)
-    .filter(([,p]) => !p.isHost)
-    .sort((a,b) => (b[1].score||0) - (a[1].score||0));
-
+  const sorted = Object.entries(players).filter(([,p]) => !p.isHost).sort((a,b) => (b[1].score||0) - (a[1].score||0));
   runRankingReveal(sorted);
 }
 
 function runRankingReveal(sorted) {
   showScreen('screen-ranking');
-
   const labelEl = document.getElementById('rank-label');
   const medalEl = document.getElementById('rank-medal');
   const nameEl  = document.getElementById('rank-name');
   const scoreEl = document.getElementById('rank-score');
-
   function setCard(label, medal, name, score, medalCls, nameCls) {
     labelEl.textContent = label;
     medalEl.className = ''; nameEl.className = ''; scoreEl.className = '';
     void medalEl.offsetWidth;
-    medalEl.textContent = medal;
-    nameEl.textContent  = name;
-    scoreEl.textContent = score;
-    medalEl.className = medalCls;
-    nameEl.className  = nameCls;
-    scoreEl.className = 'rank-score';
+    medalEl.textContent = medal; nameEl.textContent = name; scoreEl.textContent = score;
+    medalEl.className = medalCls; nameEl.className = nameCls; scoreEl.className = 'rank-score';
   }
-
   setCard('', '🏆', '結果発表！', '', 'rank-medal', 'rank-intro-text');
-
   const MEDALS = ['🏆', '🥈', '🥉'];
   const steps = [
     { delay: 1200, rank: 3, label: '🥉  第3位' },
@@ -1120,7 +985,6 @@ function runRankingReveal(sorted) {
     { delay: 6200, rank: 1, label: '🏆  第1位！！' },
     { delay: 9200, rank: 0 },
   ];
-
   steps.forEach(({ delay, rank, label }) => {
     setTimeout(() => {
       if (rank === 0) { showFullResult(sorted); return; }
@@ -1137,40 +1001,23 @@ function showFullResult(sorted) {
   showScreen('screen-result');
   const top3 = sorted.slice(0, 3);
   const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
-
   document.getElementById('result-podium').innerHTML = podiumOrder.map((entry, i) => {
     const [, p] = entry;
-    return `<div class="podium-col">
-      <div class="podium-name">${p.name}</div>
-      <div class="podium-score">${p.score||0}pt</div>
-      <div class="podium-block">
-        <div class="podium-rank">${['🥈','🥇','🥉'][i]}</div>
-        <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${[2,1,3][i]}位</div>
-      </div>
-    </div>`;
+    return `<div class="podium-col"><div class="podium-name">${p.name}</div><div class="podium-score">${p.score||0}pt</div><div class="podium-block"><div class="podium-rank">${['🥈','🥇','🥉'][i]}</div><div style="font-size:0.7rem;color:rgba(255,255,255,0.7);">${[2,1,3][i]}位</div></div></div>`;
   }).join('');
-
-  document.getElementById('result-rest').innerHTML = sorted.slice(3).map(([,p], i) => `
-    <div class="result-row">
-      <span class="result-rank-num">${i+4}位</span>
-      <span>${p.name}</span>
-      <span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span>
-    </div>
-  `).join('');
-
+  document.getElementById('result-rest').innerHTML = sorted.slice(3).map(([,p], i) =>
+    `<div class="result-row"><span class="result-rank-num">${i+4}位</span><span>${p.name}</span><span style="margin-left:auto;color:#ffd93d;font-weight:700;">${p.score||0}pt</span></div>`
+  ).join('');
   launchConfetti();
 }
 
 window.backToHome = function() {
   if (roomRef) roomRef.off();
   clearTimerInterval();
-  localAnswers = {};
-  currentQStartedAt = 0;
-  revealStarted = false;
+  localAnswers = {}; currentQStartedAt = 0; revealStarted = false;
   showScreen('screen-home');
 };
 
-// ===== UTILS =====
 function toast(msg) {
   const el = document.createElement('div');
   el.className = 'toast'; el.textContent = msg;
